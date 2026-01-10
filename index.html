@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>BlockSync - Sonera HOA</title>
     
     <!-- Tailwind CSS -->
@@ -917,7 +917,7 @@
             );
 
             return (
-                <div className="h-screen flex flex-col bg-stone-50 overflow-hidden">
+                <div className="fixed inset-0 flex flex-col bg-stone-50 overflow-hidden">
                     {/* 1. HEADER (Fixed in Flex) */}
                     <header className="bg-white border-b border-stone-200 px-6 py-4 flex justify-between items-center z-20 shrink-0 h-[72px]">
                         <div className="flex items-center gap-3">
@@ -944,7 +944,7 @@
                     </main>
 
                     {/* 3. BOTTOM NAV (Replaces Burger) */}
-                    <nav className="bg-white border-t border-stone-200 pb-safe z-30 shrink-0">
+                    <nav className="bg-white border-t border-stone-200 pb-6 z-30 shrink-0">
                         <div className="flex justify-around max-w-lg mx-auto pb-4 pt-2">
                             <NavBtn id="home" icon="fa-database" label="Data" />
                             {user && <NavBtn id="tally" icon="fa-list-check" label="Tally" />}

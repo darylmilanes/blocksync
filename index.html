@@ -944,8 +944,8 @@
                     </main>
 
                     {/* 3. BOTTOM NAV (Replaces Burger) */}
-                    <nav className="bg-white border-t border-stone-200 pb-1 z-30 shrink-0">
-                        <div className="flex justify-around max-w-lg mx-auto pb-4 pt-2">
+                    <nav className="bg-white border-t border-stone-200 pb-[env(safe-area-inset-bottom)] z-30 shrink-0">
+                        <div className="flex justify-around max-w-lg mx-auto py-2">
                             <NavBtn id="home" icon="fa-database" label="Data" />
                             {user && <NavBtn id="tally" icon="fa-list-check" label="Tally" />}
                             {user && <NavBtn id="active" icon="fa-map-location-dot" label="Status" />}

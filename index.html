@@ -178,7 +178,7 @@
             React.useEffect(() => { const t = setTimeout(onClose, 2500); return () => clearTimeout(t); }, [onClose]);
             const color = type === 'error' ? 'bg-red-500' : (type === 'warning' ? 'bg-orange-500' : 'bg-stone-900');
             return (
-                <div className="fixed top-0 left-0 right-0 pt-safe z-[100] flex justify-center pointer-events-none px-4 mt-6">
+                <div className="fixed top-0 left-0 right-0 pt-[calc(env(safe-area-inset-top)+20px)] z-[100] flex justify-center pointer-events-none px-4">
                     <div className={`${color} text-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3 animate-pop pointer-events-auto max-w-sm`}>
                         <i className={`fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}`}></i>
                         <span className="font-semibold text-sm">{message}</span>
@@ -406,6 +406,7 @@
             const totalUnits = Object.values(SUBDIVISION_MAP).reduce((a,b) => a+b, 0);
 
             React.useEffect(() => {
+                // Fetch ALL payments once for client-side processing
                 const unsub = onSnapshot(collection(db, "payments"), (snapshot) => {
                     const data = snapshot.docs.map(doc => doc.data());
                     setPayments(data);
@@ -414,8 +415,11 @@
                 return () => unsub();
             }, []);
 
+            // Logic to determine status
             const getUnitStatus = () => {
-                const statusMap = {};
+                const statusMap = {}; // Key: "Block-Lot", Value: "Active" | "Dormant" | "Never"
+                
+                // Group payments by unit
                 const unitPayments = {};
                 payments.forEach(p => {
                     const key = `${p.block}-${p.lot}`;
@@ -434,8 +438,10 @@
                         if (!dates || dates.length === 0) {
                             statusMap[key] = "Never";
                         } else {
+                            // Sort dates descending (newest first)
                             dates.sort((a,b) => b - a);
                             const latestDate = dates[0];
+                            
                             if (latestDate >= threeMonthsAgo) {
                                 statusMap[key] = "Active";
                             } else {
@@ -449,6 +455,7 @@
 
             const statusMap = React.useMemo(() => !loading ? getUnitStatus() : {}, [payments, loading]);
 
+            // Calculate Stats
             const stats = React.useMemo(() => {
                 let active = 0, dormant = 0, never = 0;
                 Object.values(statusMap).forEach(s => {
@@ -463,6 +470,7 @@
 
             return (
                 <PageContainer>
+                    {/* Insights Dashboard */}
                     <div className="glass-card p-6">
                         <h2 className="text-xl font-bold text-stone-800 mb-4">Analytics</h2>
                         <div className="grid grid-cols-2 gap-4">
@@ -491,6 +499,7 @@
                         </div>
                     </div>
 
+                    {/* Visual Grid */}
                     <div className="glass-card p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-stone-700">Unit Status Map</h3>
@@ -506,9 +515,13 @@
                             <div className="grid grid-cols-5 gap-2">
                                 {lots.map(n => {
                                     const status = statusMap[`${block}-${n}`];
-                                    let cls = "bg-stone-100 text-stone-300"; 
-                                    if (status === "Active") cls = "bg-teal-500 text-white shadow-md shadow-teal-200 font-bold";
-                                    else if (status === "Dormant") cls = "bg-stone-50 text-stone-400 border-2 border-blue-300 font-medium";
+                                    let cls = "bg-stone-100 text-stone-300"; // Default / Never
+                                    
+                                    if (status === "Active") {
+                                        cls = "bg-teal-500 text-white shadow-md shadow-teal-200 font-bold";
+                                    } else if (status === "Dormant") {
+                                        cls = "bg-stone-50 text-stone-400 border-2 border-blue-300 font-medium";
+                                    }
 
                                     return (
                                         <div key={n} className={`aspect-square rounded-xl text-sm flex items-center justify-center transition-all ${cls}`}>
@@ -542,12 +555,13 @@
 
             const lots = Array.from({length: SUBDIVISION_MAP[block]||20}, (_,i)=>i+1);
 
+            // Fetch Configured Categories
             React.useEffect(() => {
                 const unsub = onSnapshot(doc(db, "config", "categories"), (snap) => {
                     if(snap.exists() && snap.data().list) {
                         const list = snap.data().list;
                         setCategories(list);
-                        if (!cat && list.length > 0) setCat(list[0]);
+                        if (!cat && list.length > 0) setCat(list[0]); // Set default if empty
                     } else {
                         setCat(DEFAULT_CATEGORIES[0]);
                     }
@@ -555,6 +569,7 @@
                 return () => unsub();
             }, []);
 
+            // Ensure cat is set after categories load
             React.useEffect(() => {
                if (!cat && categories.length > 0) setCat(categories[0]);
             }, [categories]);
@@ -675,20 +690,24 @@
 
             React.useEffect(() => {
                 const unsub = onSnapshot(collection(db,"payments"), s => {
+                    // Fetch ALL payments, client-side sort/filter is fast enough for <10k records
                     setPay(s.docs.map(d=>({id:d.id,...d.data()})));
                     setLoad(false);
                 });
                 return () => unsub();
             }, []);
 
+            // LOGIC: Filter and Sort
             let displayData = [...pay];
             const isSearching = sb || sl;
 
             if (isSearching) {
+                // Search Mode: Ignore Month, Filter by Unit, Sort Date Desc
                 if(sb) displayData = displayData.filter(p => p.block === sb);
                 if(sl) displayData = displayData.filter(p => p.lot === sl);
                 displayData.sort((a,b) => b.datePaid.seconds - a.datePaid.seconds);
             } else {
+                // Default Mode: Filter by Month, Sort Block Asc -> Lot Asc
                 displayData = displayData.filter(p => {
                     const d = p.datePaid.toDate();
                     const m = d.toISOString().slice(0, 7);
@@ -767,6 +786,7 @@
             const [load, setLoad] = React.useState(true);
             const [lastTap, setLastTap] = React.useState(0);
 
+            // Expense Form
             const [eId, setEId] = React.useState(null);
             const [eTitle, setETitle] = React.useState("");
             const [eAmt, setEAmt] = React.useState("");
@@ -803,6 +823,7 @@
                 setEId(x.id); setETitle(x.title); setEAmt(x.amount); setEDate(toInputDate(x.date.toDate())); scrollToTop(); 
             };
 
+            // Logic
             const mData = {};
             pay.forEach(p => { const k=getMonthYear(p.datePaid.toDate()); if(!mData[k]) mData[k]={c:0,e:0,items:[]}; mData[k].c+=(p.amount||0); });
             exp.forEach(e => { const k=getMonthYear(e.date.toDate()); if(!mData[k]) mData[k]={c:0,e:0,items:[]}; mData[k].e+=(e.amount||0); mData[k].items.push(e); });
@@ -925,9 +946,7 @@
                 <div className="fixed inset-0 flex flex-col bg-stone-50 overflow-hidden">
                     <header className="bg-white border-b border-stone-200 px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 flex justify-between items-center z-20 shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-tr from-teal-600 to-emerald-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-100">
-                                <i className="fa-solid fa-cube text-lg"></i>
-                            </div>
+                            <img src="./favicon.png" alt="BlockSync Logo" className="w-10 h-10 rounded-xl shadow-md" />
                             <h1 className="font-extrabold text-xl tracking-tight text-stone-800">BlockSync</h1>
                         </div>
                         {user ? (
@@ -946,8 +965,8 @@
                         </div>
                     </main>
 
-                    <nav className="bg-white border-t border-stone-200 pb-[env(safe-area-inset-bottom)] z-30 shrink-0">
-                        <div className="flex justify-around max-w-lg mx-auto py-2 pb-1">
+                    <nav className="bg-white border-t border-stone-200 pb-1 z-30 shrink-0">
+                        <div className="flex justify-around max-w-lg mx-auto py-2">
                             <NavBtn id="home" icon="fa-database" label="Data" />
                             {user && <NavBtn id="tally" icon="fa-list-check" label="Tally" />}
                             {user && <NavBtn id="active" icon="fa-map-location-dot" label="Status" />}

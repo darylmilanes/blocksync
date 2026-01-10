@@ -9,7 +9,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <meta name="theme-color" content="#fafaf9">
+    <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -32,8 +32,9 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; background-color: #fafaf9; }
         
-        /* Layout Reset */
-        html, body, #root { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        /* Layout Reset for PWA */
+        html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; }
+        #root { height: 100dvh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
         
         /* Mobile Input Fixes */
         input, select, textarea { font-size: 16px !important; } 
@@ -109,9 +110,16 @@
         }
     </script>
 </head>
-<body class="text-stone-800 tap-highlight-transparent">
+<body class="text-stone-800 tap-highlight-transparent bg-stone-50">
     
-    <div id="root"></div>
+    <div id="root">
+        <div class="flex h-full items-center justify-center text-slate-400 font-medium">
+            <div class="text-center">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-emerald-500"></i>
+                <p>Loading BlockSync...</p>
+            </div>
+        </div>
+    </div>
 
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -154,8 +162,9 @@
         const Toast = ({ message, type, onClose }) => {
             React.useEffect(() => { const t = setTimeout(onClose, 2500); return () => clearTimeout(t); }, [onClose]);
             const color = type === 'error' ? 'bg-red-500' : (type === 'warning' ? 'bg-orange-500' : 'bg-stone-900');
+            // Adjusted 'top' to account for safe area
             return (
-                <div className="fixed top-24 left-0 right-0 z-[100] flex justify-center pointer-events-none px-4">
+                <div className="fixed top-0 left-0 right-0 pt-[calc(env(safe-area-inset-top)+20px)] z-[100] flex justify-center pointer-events-none px-4">
                     <div className={`${color} text-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3 animate-pop pointer-events-auto max-w-sm`}>
                         <i className={`fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}`}></i>
                         <span className="font-semibold text-sm">{message}</span>
@@ -173,7 +182,7 @@
         );
 
         const PageContainer = ({ children }) => (
-            <div className="max-w-lg mx-auto w-full space-y-6 pb-20 animate-enter px-4">
+            <div className="max-w-lg mx-auto w-full space-y-6 pb-20 animate-enter px-4 pt-6">
                 {children}
             </div>
         );
@@ -391,8 +400,11 @@
                 return () => unsub();
             }, []);
 
+            // Logic to determine status
             const getUnitStatus = () => {
-                const statusMap = {};
+                const statusMap = {}; // Key: "Block-Lot", Value: "Active" | "Dormant" | "Never"
+                
+                // Group payments by unit
                 const unitPayments = {};
                 payments.forEach(p => {
                     const key = `${p.block}-${p.lot}`;
@@ -411,8 +423,10 @@
                         if (!dates || dates.length === 0) {
                             statusMap[key] = "Never";
                         } else {
+                            // Sort dates descending (newest first)
                             dates.sort((a,b) => b - a);
                             const latestDate = dates[0];
+                            
                             if (latestDate >= threeMonthsAgo) {
                                 statusMap[key] = "Active";
                             } else {
@@ -426,6 +440,7 @@
 
             const statusMap = React.useMemo(() => !loading ? getUnitStatus() : {}, [payments, loading]);
 
+            // Calculate Stats
             const stats = React.useMemo(() => {
                 let active = 0, dormant = 0, never = 0;
                 Object.values(statusMap).forEach(s => {
@@ -440,6 +455,7 @@
 
             return (
                 <PageContainer>
+                    {/* Insights Dashboard */}
                     <div className="glass-card p-6">
                         <h2 className="text-xl font-bold text-stone-800 mb-4">Analytics</h2>
                         <div className="grid grid-cols-2 gap-4">
@@ -468,6 +484,7 @@
                         </div>
                     </div>
 
+                    {/* Visual Grid */}
                     <div className="glass-card p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-stone-700">Unit Status Map</h3>
@@ -483,9 +500,13 @@
                             <div className="grid grid-cols-5 gap-2">
                                 {lots.map(n => {
                                     const status = statusMap[`${block}-${n}`];
-                                    let cls = "bg-stone-100 text-stone-300"; 
-                                    if (status === "Active") cls = "bg-teal-500 text-white shadow-md shadow-teal-200 font-bold";
-                                    else if (status === "Dormant") cls = "bg-stone-50 text-stone-400 border-2 border-blue-300 font-medium";
+                                    let cls = "bg-stone-100 text-stone-300"; // Default / Never
+                                    
+                                    if (status === "Active") {
+                                        cls = "bg-teal-500 text-white shadow-md shadow-teal-200 font-bold";
+                                    } else if (status === "Dormant") {
+                                        cls = "bg-stone-50 text-stone-400 border-2 border-blue-300 font-medium";
+                                    }
 
                                     return (
                                         <div key={n} className={`aspect-square rounded-xl text-sm flex items-center justify-center transition-all ${cls}`}>
@@ -519,6 +540,7 @@
 
             const lots = Array.from({length: SUBDIVISION_MAP[block]||20}, (_,i)=>i+1);
 
+            // Fetch Configured Categories
             React.useEffect(() => {
                 const unsub = onSnapshot(doc(db, "config", "categories"), (snap) => {
                     if(snap.exists() && snap.data().list) {
@@ -875,6 +897,8 @@
             );
         };
 
+        // --- APP SHELL ---
+
         const App = () => {
             const [user, setUser] = React.useState(null);
             const [view, setView] = React.useState('home');
@@ -889,7 +913,7 @@
             const NavBtn = ({ id, icon, label }) => (
                 <button 
                     onClick={() => setView(id)} 
-                    className={`flex-1 flex flex-col items-center justify-center py-2 transition-all duration-300 ${view===id ? 'text-teal-600' : 'text-stone-400 hover:text-stone-600'}`}
+                    className={`flex-1 flex flex-col items-center justify-center py-3 transition-all duration-300 ${view===id ? 'text-teal-600' : 'text-stone-400 hover:text-stone-600'}`}
                 >
                     <div className={`text-xl mb-1 transition-transform ${view===id?'scale-110':''}`}><i className={`fa-solid ${icon}`}></i></div>
                     <span className="text-[10px] font-bold tracking-wide">{label}</span>
@@ -898,18 +922,20 @@
 
             return (
                 <div className="fixed inset-0 flex flex-col bg-stone-50 overflow-hidden">
-                    <header className="bg-white border-b border-stone-200 px-6 py-4 flex justify-between items-center z-20 shrink-0 h-[72px]">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-tr from-teal-600 to-emerald-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-100">
-                                <i className="fa-solid fa-cube text-lg"></i>
+                    <header className="bg-white border-b border-stone-200 px-6 pt-[env(safe-area-inset-top)] flex justify-between items-center z-20 shrink-0">
+                        <div className="h-16 flex items-center w-full justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-tr from-teal-600 to-emerald-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-100">
+                                    <i className="fa-solid fa-cube text-lg"></i>
+                                </div>
+                                <h1 className="font-extrabold text-xl tracking-tight text-stone-800">BlockSync</h1>
                             </div>
-                            <h1 className="font-extrabold text-xl tracking-tight text-stone-800">BlockSync</h1>
+                            {user ? (
+                                <button onClick={()=>signOut(auth)} className="w-10 h-10 bg-stone-100 rounded-full text-stone-400 hover:bg-red-50 hover:text-red-500 transition"><i className="fa-solid fa-power-off"></i></button>
+                            ) : (
+                                <button onClick={()=>setModal(true)} className="w-10 h-10 bg-stone-100 rounded-full text-stone-400 hover:bg-stone-200 transition"><i className="fa-solid fa-user-lock"></i></button>
+                            )}
                         </div>
-                        {user ? (
-                            <button onClick={()=>signOut(auth)} className="w-10 h-10 bg-stone-100 rounded-full text-stone-400 hover:bg-red-50 hover:text-red-500 transition"><i className="fa-solid fa-power-off"></i></button>
-                        ) : (
-                            <button onClick={()=>setModal(true)} className="w-10 h-10 bg-stone-100 rounded-full text-stone-400 hover:bg-stone-200 transition"><i className="fa-solid fa-user-lock"></i></button>
-                        )}
                     </header>
 
                     <main ref={scrollRef} className="flex-1 overflow-y-auto scroll-area p-4 pb-0 relative">
@@ -922,7 +948,7 @@
                     </main>
 
                     <nav className="bg-white border-t border-stone-200 pb-[env(safe-area-inset-bottom)] z-30 shrink-0">
-                        <div className="flex justify-around max-w-lg mx-auto py-2">
+                        <div className="flex justify-around max-w-lg mx-auto">
                             <NavBtn id="home" icon="fa-database" label="Data" />
                             {user && <NavBtn id="tally" icon="fa-list-check" label="Tally" />}
                             {user && <NavBtn id="active" icon="fa-map-location-dot" label="Status" />}
@@ -938,16 +964,6 @@
 
         const root = ReactDOM.createRoot(document.getElementById("root"));
         root.render(<App />);
-
-        // Register SW
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(
-                    (registration) => console.log('SW Registered', registration),
-                    (err) => console.log('SW Failed', err)
-                );
-            });
-        }
     </script>
 </body>
 </html>

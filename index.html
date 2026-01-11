@@ -124,6 +124,9 @@
         };
 
         const DEFAULT_CATEGORIES = ["Waste Collection", "Monthly Dues", "Security Fee"];
+        
+        // REMOVED HARDCODED ACCESS CODE
+        // We now check Firestore collection: 'community_codes', document ID: 'CODE_HERE'
 
         const firebaseConfig = {
             apiKey: "AIzaSyCApFluUkql1dqrGwH5r67DO6E-L-ez-OM",
@@ -151,7 +154,7 @@
             React.useEffect(() => { const t = setTimeout(onClose, 2500); return () => clearTimeout(t); }, [onClose]);
             const color = type === 'error' ? 'bg-red-500' : (type === 'warning' ? 'bg-orange-500' : 'bg-stone-900');
             return (
-                <div className="fixed top-0 left-0 right-0 pt-[calc(env(safe-area-inset-top)+20px)] z-[100] flex justify-center pointer-events-none px-4">
+                <div className="fixed top-24 left-0 right-0 z-[250] flex justify-center pointer-events-none px-4">
                     <div className={`${color} text-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3 animate-pop pointer-events-auto max-w-sm`}>
                         <i className={`fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}`}></i>
                         <span className="font-semibold text-sm">{message}</span>
@@ -160,19 +163,106 @@
             );
         };
 
-        const Modal = ({ children, onClose }) => (
-            <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center z-[60] p-6 animate-enter" onClick={onClose}>
-                <div className="bg-white rounded-[2rem] w-full max-w-sm shadow-2xl overflow-hidden animate-pop" onClick={e => e.stopPropagation()}>
-                    {children}
+        // FIXED MODAL v1.1.3: Smart Viewport Centering & Auto-Scroll
+        const Modal = ({ children, onClose }) => {
+            const modalRef = React.useRef(null);
+            React.useEffect(() => {
+                if (modalRef.current) {
+                    modalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, []);
+
+            return (
+                <div className="fixed inset-0 z-[200] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" onClick={onClose}>
+                    <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm transition-opacity"></div>
+                    <div className="flex min-h-full items-center justify-center p-4 pt-24 text-center">
+                        <div 
+                            ref={modalRef}
+                            className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl animate-pop overflow-hidden z-10" 
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {children}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        );
+            );
+        };
 
         const PageContainer = ({ children }) => (
             <div className="max-w-lg mx-auto w-full space-y-6 pb-20 animate-enter px-4 pt-6">
                 {children}
             </div>
         );
+
+        // --- NEW COMPONENT: ACCESS GATE (BACKEND VERIFIED) ---
+        const AccessGate = ({ onGrant }) => {
+            const [code, setCode] = React.useState("");
+            const [loading, setLoading] = React.useState(false);
+            const [error, setError] = React.useState("");
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError("");
+                
+                const cleanCode = code.trim().toUpperCase();
+
+                try {
+                    // Check against backend DB instead of hardcoded string
+                    const docRef = doc(db, "community_codes", cleanCode);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists() && docSnap.data().active === true) {
+                        localStorage.setItem('blocksync_access_v1', 'granted');
+                        onGrant();
+                    } else {
+                        setError("Invalid Code");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    setError("Connection Error");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 z-[300] bg-stone-100 flex flex-col items-center justify-center p-6 animate-fade-in">
+                    <div className="w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-8 text-center border border-stone-200">
+                        <div className="w-20 h-20 bg-teal-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                            <img src="./icon-192.png" alt="Logo" className="w-12 h-12 object-contain" />
+                        </div>
+                        <h2 className="text-2xl font-extrabold text-stone-800 mb-2">BlockSync</h2>
+                        <p className="text-stone-500 text-sm mb-8">Sonera Homeowners Association</p>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="relative">
+                                <input 
+                                    type="text" 
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                                    placeholder="Enter Community Code"
+                                    className={`modern-input text-center text-lg tracking-widest font-bold uppercase placeholder:normal-case placeholder:font-normal placeholder:tracking-normal ${error ? 'border-red-500 bg-red-50 text-red-600' : 'focus:border-teal-500'}`}
+                                    autoFocus
+                                    disabled={loading}
+                                />
+                                {error && <div className="absolute inset-y-0 right-4 flex items-center text-red-500"><i className="fa-solid fa-circle-exclamation"></i></div>}
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className="w-full py-4 bg-stone-900 text-white rounded-xl font-bold shadow-lg hover:bg-stone-800 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                            >
+                                {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <span>Enter Community</span>}
+                            </button>
+                        </form>
+                        
+                        <p className="mt-6 text-xs text-stone-300 font-medium">Secured Access v1.1.3</p>
+                    </div>
+                </div>
+            );
+        };
 
         // --- FEATURE COMPONENTS ---
 
@@ -225,12 +315,13 @@
 
             return (
                 <Modal onClose={onClose}>
-                    <div className="p-6 h-[80vh] flex flex-col">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="p-6 h-[70vh] flex flex-col">
+                        <div className="flex justify-between items-center mb-6 shrink-0">
                             <h3 className="font-bold text-lg">Manage Categories</h3>
                             <button onClick={onClose}><i className="fa-solid fa-times text-stone-400 text-xl"></i></button>
                         </div>
-                        <div className="flex-1 overflow-y-auto scroll-area space-y-3 mb-4">
+                        
+                        <div className="flex-1 overflow-y-auto scroll-area space-y-3 mb-4 min-h-0">
                             {categories.map((cat, idx) => (
                                 <div key={idx} className="flex items-center gap-2 bg-stone-50 p-3 rounded-xl border border-stone-100">
                                     {editIdx === idx ? (
@@ -248,7 +339,8 @@
                                 </div>
                             ))}
                         </div>
-                        <form onSubmit={addCat} className="pt-4 border-t border-stone-100">
+
+                        <form onSubmit={addCat} className="pt-4 border-t border-stone-100 shrink-0">
                             <div className="flex gap-2">
                                 <input placeholder="New Category Name" value={newCat} onChange={e=>setNewCat(e.target.value)} className="modern-input h-12" />
                                 <button type="submit" className="bg-stone-900 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"><i className="fa-solid fa-plus"></i></button>
@@ -278,13 +370,13 @@
 
             return (
                 <Modal onClose={onClose}>
-                    <div className="p-8 text-center bg-stone-50">
+                    <div className="p-8 text-center bg-stone-50 shrink-0">
                         <div className="w-14 h-14 bg-white text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
                             <i className="fa-solid fa-fingerprint"></i>
                         </div>
                         <h2 className="font-bold text-xl text-stone-800">Admin Access</h2>
                     </div>
-                    <form onSubmit={handle} className="p-8 pt-4 space-y-4">
+                    <form onSubmit={handle} className="p-8 pt-4 space-y-4 shrink-0">
                         {err && <div className="bg-red-50 text-red-500 p-3 rounded-xl text-center text-sm font-bold">{err}</div>}
                         <input className="modern-input" placeholder="Username" value={user} onChange={e=>setUser(e.target.value)} required />
                         <input className="modern-input" type="password" placeholder="Password" value={pass} onChange={e=>setPass(e.target.value)} required />
@@ -300,7 +392,7 @@
         const InitBalModal = ({ initialBalance, onSave, onClose }) => {
             const [val, setVal] = React.useState(initialBalance || "");
             return (
-                <Modal>
+                <Modal onClose={onClose}>
                     <div className="p-8 text-center">
                         <div className="w-14 h-14 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                             <i className="fa-solid fa-coins"></i>
@@ -315,6 +407,92 @@
                             <button onClick={()=>onSave(val)} className="flex-1 py-3.5 bg-teal-600 text-white rounded-xl font-bold">Save Baseline</button>
                         </div>
                     </div>
+                </Modal>
+            );
+        };
+
+        const ExpenseModal = ({ expense, onClose, showToast }) => {
+            const isEdit = !!expense;
+            const [title, setTitle] = React.useState(expense ? expense.title : "");
+            const [amount, setAmount] = React.useState(expense ? expense.amount : "");
+            const [date, setDate] = React.useState(expense ? toInputDate(expense.date.toDate()) : toInputDate(new Date()));
+            const [del, setDel] = React.useState(false);
+
+            const handleSave = async (e) => {
+                e.preventDefault();
+                const payload = { 
+                    title, 
+                    amount: parseFloat(amount), 
+                    date: Timestamp.fromDate(new Date(date)) 
+                };
+
+                try {
+                    if (isEdit) {
+                        await updateDoc(doc(db, "expenses", expense.id), payload);
+                        showToast("Expense updated", "success");
+                    } else {
+                        await addDoc(collection(db, "expenses"), payload);
+                        showToast("Expense added", "success");
+                    }
+                    onClose();
+                } catch(err) { showToast(err.message, "error"); }
+            };
+
+            const handleDelete = async () => {
+                try {
+                    await deleteDoc(doc(db, "expenses", expense.id));
+                    showToast("Expense deleted", "success");
+                    onClose();
+                } catch(err) { showToast(err.message, "error"); }
+            };
+
+            return (
+                <Modal onClose={onClose}>
+                    {del ? (
+                        <div className="p-8 text-center">
+                            <div className="w-14 h-14 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                                <i className="fa-solid fa-trash-can"></i>
+                            </div>
+                            <h3 className="font-bold text-lg mb-4">Delete this expense?</h3>
+                            <div className="flex gap-3">
+                                <button onClick={()=>setDel(false)} className="flex-1 py-3 bg-stone-100 rounded-xl font-bold text-stone-500">Cancel</button>
+                                <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Yes, Delete</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6 shrink-0">
+                                <h3 className="font-bold text-lg">{isEdit ? 'Edit Expense' : 'Record Expense'}</h3>
+                                <button onClick={onClose}><i className="fa-solid fa-times text-stone-400 text-xl"></i></button>
+                            </div>
+                            <form onSubmit={handleSave} className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Description</label>
+                                    <input placeholder="e.g. Street Light Repair" value={title} onChange={e=>setTitle(e.target.value)} className="modern-input" required />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Amount</label>
+                                        <input type="number" placeholder="0.00" value={amount} onChange={e=>setAmount(e.target.value)} className="modern-input" required />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Date</label>
+                                        <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="modern-input" required />
+                                    </div>
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    {isEdit && (
+                                        <button type="button" onClick={()=>setDel(true)} className="p-4 bg-red-50 text-red-500 rounded-xl font-bold hover:bg-red-100 transition">
+                                            <i className="fa-solid fa-trash"></i>
+                                        </button>
+                                    )}
+                                    <button type="submit" className="flex-1 py-4 bg-stone-900 text-white rounded-xl font-bold shadow-lg hover:bg-stone-800 transition">
+                                        {isEdit ? 'Update Expense' : 'Save Record'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
                 </Modal>
             );
         };
@@ -344,7 +522,7 @@
                         </div>
                     ) : (
                         <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
+                            <div className="flex justify-between items-center mb-6 shrink-0">
                                 <h3 className="font-bold text-lg">Edit Record</h3>
                                 <button onClick={onClose}><i className="fa-solid fa-times text-stone-400 text-xl"></i></button>
                             </div>
@@ -385,8 +563,11 @@
                 return () => unsub();
             }, []);
 
+            // Logic to determine status
             const getUnitStatus = () => {
-                const statusMap = {};
+                const statusMap = {}; // Key: "Block-Lot", Value: "Active" | "Dormant" | "Never"
+                
+                // Group payments by unit
                 const unitPayments = {};
                 payments.forEach(p => {
                     const key = `${p.block}-${p.lot}`;
@@ -477,9 +658,13 @@
                             <div className="grid grid-cols-5 gap-2">
                                 {lots.map(n => {
                                     const status = statusMap[`${block}-${n}`];
-                                    let cls = "bg-stone-100 text-stone-300"; 
-                                    if (status === "Active") cls = "bg-teal-500 text-white shadow-md shadow-teal-200 font-bold";
-                                    else if (status === "Dormant") cls = "bg-stone-50 text-stone-400 border-2 border-blue-300 font-medium";
+                                    let cls = "bg-stone-100 text-stone-300"; // Default / Never
+                                    
+                                    if (status === "Active") {
+                                        cls = "bg-teal-500 text-white shadow-md shadow-teal-200 font-bold";
+                                    } else if (status === "Dormant") {
+                                        cls = "bg-stone-50 text-stone-400 border-2 border-blue-300 font-medium";
+                                    }
 
                                     return (
                                         <div key={n} className={`aspect-square rounded-xl text-sm flex items-center justify-center transition-all ${cls}`}>
@@ -513,12 +698,13 @@
 
             const lots = Array.from({length: SUBDIVISION_MAP[block]||20}, (_,i)=>i+1);
 
+            // Fetch Configured Categories
             React.useEffect(() => {
                 const unsub = onSnapshot(doc(db, "config", "categories"), (snap) => {
                     if(snap.exists() && snap.data().list) {
                         const list = snap.data().list;
                         setCategories(list);
-                        if (!cat && list.length > 0) setCat(list[0]);
+                        if (!cat && list.length > 0) setCat(list[0]); // Set default if empty
                     } else {
                         setCat(DEFAULT_CATEGORIES[0]);
                     }
@@ -526,6 +712,7 @@
                 return () => unsub();
             }, []);
 
+            // Ensure cat is set after categories load
             React.useEffect(() => {
                if (!cat && categories.length > 0) setCat(categories[0]);
             }, [categories]);
@@ -656,10 +843,12 @@
             const isSearching = sb || sl;
 
             if (isSearching) {
+                // Search Mode: Ignore Month, Filter by Unit, Sort Date Desc
                 if(sb) displayData = displayData.filter(p => p.block === sb);
                 if(sl) displayData = displayData.filter(p => p.lot === sl);
                 displayData.sort((a,b) => b.datePaid.seconds - a.datePaid.seconds);
             } else {
+                // Default Mode: Filter by Month, Sort Block Asc -> Lot Asc
                 displayData = displayData.filter(p => {
                     const d = p.datePaid.toDate();
                     const m = d.toISOString().slice(0, 7);
@@ -737,12 +926,10 @@
             const [showInit, setShowInit] = React.useState(false);
             const [load, setLoad] = React.useState(true);
             const [lastTap, setLastTap] = React.useState(0);
-
-            // Expense Form
-            const [eId, setEId] = React.useState(null);
-            const [eTitle, setETitle] = React.useState("");
-            const [eAmt, setEAmt] = React.useState("");
-            const [eDate, setEDate] = React.useState(toInputDate(new Date()));
+            
+            // Modal States
+            const [editExpData, setEditExpData] = React.useState(null);
+            const [showExpenseModal, setShowExpenseModal] = React.useState(false);
 
             React.useEffect(() => {
                 const u1 = onSnapshot(collection(db,"payments"), s=>setPay(s.docs.map(d=>d.data())));
@@ -760,19 +947,16 @@
                 setInitBal(parseFloat(v)); setShowInit(false); showToast("Saved! Double tap header to edit.", "success");
             };
 
-            const saveExp = async (e) => {
-                e.preventDefault(); if(!user) return;
-                const pl = { title:eTitle, amount:parseFloat(eAmt), date:Timestamp.fromDate(new Date(eDate)) };
-                try {
-                    if(eId) { await updateDoc(doc(db,"expenses",eId), pl); showToast("Expense Updated", "success"); }
-                    else { await addDoc(collection(db,"expenses"), pl); showToast("Expense Added", "success"); }
-                    setEId(null); setETitle(""); setEAmt("");
-                } catch(err){ showToast(err.message, "error"); }
+            const headerTap = () => { if(user) { const n=Date.now(); if(n-lastTap<300) setShowInit(true); setLastTap(n); }};
+            
+            const handleAddClick = () => {
+                setEditExpData(null);
+                setShowExpenseModal(true);
             };
 
-            const headerTap = () => { if(user) { const n=Date.now(); if(n-lastTap<300) setShowInit(true); setLastTap(n); }};
-            const editExp = (x) => { 
-                setEId(x.id); setETitle(x.title); setEAmt(x.amount); setEDate(toInputDate(x.date.toDate())); scrollToTop(); 
+            const handleEditClick = (expense) => {
+                setEditExpData(expense);
+                setShowExpenseModal(true);
             };
 
             // Logic
@@ -793,6 +977,14 @@
 
             return (
                 <PageContainer>
+                    {showExpenseModal && (
+                        <ExpenseModal 
+                            expense={editExpData} 
+                            onClose={() => setShowExpenseModal(false)} 
+                            showToast={showToast} 
+                        />
+                    )}
+                    
                     <div onClick={headerTap} className="glass-card p-6 cursor-pointer select-none relative overflow-hidden group">
                         <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition">
                             <i className="fa-solid fa-chart-pie text-6xl"></i>
@@ -804,23 +996,13 @@
                     {showInit && <InitBalModal initialBalance={initBal} onSave={saveInit} onClose={()=>setShowInit(false)} />}
 
                     {user && (
-                        <div className="glass-card p-6 ring-1 ring-orange-100">
-                            <h3 className="font-bold text-stone-700 mb-4 flex items-center gap-2">
-                                <i className={`fa-solid ${eId?'fa-pen':'fa-plus'} text-orange-500`}></i> 
-                                {eId ? 'Edit Expense' : 'Record Expense'}
-                            </h3>
-                            <form onSubmit={saveExp} className="space-y-3">
-                                <input placeholder="Description (e.g. Repairs)" value={eTitle} onChange={e=>setETitle(e.target.value)} className="modern-input" required />
-                                <div className="flex gap-3">
-                                    <input type="number" placeholder="Amount" value={eAmt} onChange={e=>setEAmt(e.target.value)} className="modern-input" required />
-                                    <input type="date" value={eDate} onChange={e=>setEDate(e.target.value)} className="modern-input" required />
-                                </div>
-                                <div className="flex gap-2 pt-1">
-                                    {eId && <button type="button" onClick={()=>{setEId(null);setETitle("");setEAmt("")}} className="px-4 text-stone-400 font-bold">Cancel</button>}
-                                    <button type="submit" className="flex-1 py-3 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition">{eId?'Update':'Add Entry'}</button>
-                                </div>
-                            </form>
-                        </div>
+                        <button 
+                            onClick={handleAddClick}
+                            className="w-full py-4 bg-teal-600 text-white rounded-2xl font-bold shadow-lg shadow-teal-200 hover:bg-teal-700 transition transform active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            <i className="fa-solid fa-plus-circle text-lg"></i>
+                            Add Expense
+                        </button>
                     )}
 
                     {load ? <div className="text-center py-10 text-stone-300"><i className="fa-solid fa-circle-notch fa-spin text-2xl"></i></div> :
@@ -854,7 +1036,7 @@
                                                 {r.items.map(i => (
                                                     <div key={i.id} className="flex justify-between text-sm group">
                                                         <div className="flex items-center gap-2">
-                                                            {user && <button onClick={()=>editExp(i)}><i className="fa-solid fa-pencil text-stone-300 hover:text-orange-500"></i></button>}
+                                                            {user && <button onClick={()=>handleEditClick(i)}><i className="fa-solid fa-pencil text-stone-300 hover:text-orange-500"></i></button>}
                                                             <span className="font-medium text-stone-600">{i.title}</span>
                                                             <span className="text-xs text-stone-400 bg-stone-100 px-1 rounded">{formatDateDisplay(i.date.toDate())}</span>
                                                         </div>
@@ -872,14 +1054,22 @@
             );
         };
 
+        // --- APP SHELL ---
+
         const App = () => {
             const [user, setUser] = React.useState(null);
+            const [accessGranted, setAccessGranted] = React.useState(false);
             const [view, setView] = React.useState('home');
-            const [menuOpen, setMenuOpen] = React.useState(false);
             const [modal, setModal] = React.useState(false);
             const [toast, setToast] = React.useState(null);
+            const [menuOpen, setMenuOpen] = React.useState(false);
 
-            React.useEffect(() => onAuthStateChanged(auth, setUser), []);
+            React.useEffect(() => {
+                const access = localStorage.getItem('blocksync_access_v1');
+                if (access === 'granted') setAccessGranted(true);
+                const unsubscribe = onAuthStateChanged(auth, setUser);
+                return () => unsubscribe();
+            }, []);
 
             const NavBtn = ({ id, icon, label, onClick }) => (
                 <button 
@@ -891,15 +1081,18 @@
                 </button>
             );
 
+            if (!accessGranted) {
+                return <AccessGate onGrant={() => setAccessGranted(true)} />;
+            }
+
             return (
-                <div className="fixed inset-0 flex flex-col bg-stone-50 overflow-hidden">
-                    {/* Header */}
-                    <header className="bg-white border-b border-stone-200 px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 flex justify-between items-center z-50 shrink-0">
+                <div id="root">
+                    <header className="bg-white border-b border-stone-200 px-6 py-4 flex justify-between items-center z-20 shrink-0 h-[72px]">
                         <div className="flex items-center gap-3">
                             <img src="favicon.png" className="w-10 h-10 object-contain" />
-                            <div className="flex flex-col">
+                            <div class="flex flex-col">
                                 <h1 class="font-extrabold text-xl leading-none text-stone-800">BlockSync</h1>
-                                <span class="text-[0.65rem] font-medium text-stone-400 tracking-wide">v1.0.8</span>
+                                <span class="text-[0.65rem] font-medium text-stone-400 tracking-wide">v1.1.3</span>
                             </div>
                         </div>
                         <button onClick={() => setMenuOpen(!menuOpen)} className="w-10 h-10 bg-stone-100 rounded-full text-stone-500 hover:bg-stone-200 transition flex items-center justify-center">
@@ -907,9 +1100,8 @@
                         </button>
                     </header>
 
-                    {/* Burger Menu Overlay */}
                     {menuOpen && (
-                        <div className="absolute top-[calc(env(safe-area-inset-top)+72px)] left-0 w-full bg-white shadow-2xl border-b border-stone-200 z-40 animate-fade-in flex flex-col pb-4">
+                        <div className="absolute top-[72px] left-0 w-full bg-white shadow-2xl border-b border-stone-200 z-40 animate-fade-in flex flex-col pb-4">
                             <NavBtn id="home" icon="fa-database" label="Database" />
                             <NavBtn id="summary" icon="fa-chart-pie" label="Financial Summary" />
                             {user && (
@@ -937,7 +1129,6 @@
                         </div>
                     )}
 
-                    {/* Main Content */}
                     <main className="flex-1 overflow-y-auto scroll-area p-4 pb-0 relative">
                         <div className="pt-4">
                             {view === 'home' && <ViewerMode />}

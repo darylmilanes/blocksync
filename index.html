@@ -6,8 +6,11 @@
     <title>BlockSync - Sonera HOA</title>
     
     <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJsb2NrU3luYyBob2EiLAogICJzaG9ydF9uYW1lIjogIkJsb2NrU3luYyIsCiAgInN0YXJ0X3VybCI6ICIvIiwKICAiZGlzcGxheSI6ICJzdGFuZGFxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmYWZhZjkiLAogICJ0aGVtZV9jb2xvciI6ICIjZmZmZmZmIiwKICAiaWNvbnMiOiBbXQp9">
-    <meta name="theme-color" content="#ffffff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <meta name="theme-color" content="#fafaf9">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -456,7 +459,7 @@
                 return () => unsub();
             }, []);
 
-            // 2. Fetch Balances for ALL categories (for disabled state dropdown)
+            // 2. Fetch Balances for ALL categories (for disabled state dropdown) - FIX: DECOUPLED LISTENERS
             React.useEffect(() => {
                 if(mode !== 'expense') return;
                 
@@ -533,7 +536,7 @@
                 return () => unsub();
             }, [category, date, mode]);
 
-            // 5. AUTO-COMPUTE FUND SOURCE (Live)
+            // 5. AUTO-COMPUTE FUND SOURCE (Live) - FIX: DECOUPLED LISTENERS
             React.useEffect(() => {
                 if(mode !== 'expense' || !fundSource) { setFundBalance(null); return; }
                 

@@ -6,11 +6,7 @@
     <title>BlockSync - Sonera HOA</title>
     
     <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    
-    <!-- PWA Settings -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJsb2NrU3luYyBob2EiLAogICJzaG9ydF9uYW1lIjogIkJsb2NrU3luYyIsCiAgInN0YXJ0X3VybCI6ICIvIiwKICAiZGlzcGxheSI6ICJzdGFuZGFxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmYWZhZjkiLAogICJ0aGVtZV9jb2xvciI6ICIjZmZmZmZmIiwKICAiaWNvbnMiOiBbXQp9">
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -39,6 +35,13 @@
             background-color: #fafaf9; /* Stone-50 */
             margin: 0; padding: 0;
             overscroll-behavior-y: none;
+            user-select: none;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        /* IOS ZOOM PREVENTION */
+        input, select, textarea, button {
+            font-size: 16px !important; 
         }
         
         /* APP SHELL */
@@ -52,37 +55,43 @@
         }
 
         /* UTILITIES */
-        input, select, textarea { font-size: 16px !important; } 
         .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
         .scroll-area::-webkit-scrollbar { width: 0px; background: transparent; }
-
-        /* MODERN INPUT */
-        .modern-input {
-            display: block; width: 100%; background-color: #f5f5f4;
-            border: 1px solid transparent; padding: 0 1rem; border-radius: 1rem;
-            font-weight: 600; color: #44403c; outline: none; transition: all 0.2s;
-            box-sizing: border-box; height: 3.5rem; line-height: 3.5rem;
-        }
-        input[type="date"].modern-input, input[type="month"].modern-input {
-            -webkit-appearance: none; appearance: none; display: block;
-            padding-top: 0; padding-bottom: 0; line-height: 3.5rem; min-height: 3.5rem;
-        }
-        .modern-input:focus { background-color: #ffffff; border-color: #0d9488; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1); }
         
-        /* GLASS CARD */
-        .glass-card {
-            background: white; border: 1px solid #e7e5e4; border-radius: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        /* HIDE NUMBER SPINNERS */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
         }
 
-        /* ANIMATIONS */
-        .animate-enter { animation: enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-pop { animation: pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
-        
-        @keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* CUSTOM ANIMATIONS */
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        .animate-scale-in { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #0d9488;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #0d9488;
+        }
+        
+        /* VOID STYLING */
+        .void-row {
+            opacity: 0.5;
+            background-color: #f5f5f4;
+            text-decoration: line-through;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -90,9 +99,13 @@
                 extend: {
                     colors: {
                         teal: { 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 900: '#134e4a' },
-                        stone: { 50: '#fafaf9', 100: '#f5f5f4', 800: '#292524', 900: '#1c1917' },
-                        orange: { 500: '#f97316' },
-                        blue: { 400: '#60a5fa' }
+                        stone: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1', 400: '#a8a29e', 500: '#78716c', 600: '#57534e', 700: '#44403c', 800: '#292524', 900: '#1c1917' },
+                        orange: { 500: '#f97316', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74' },
+                        blue: { 400: '#60a5fa', 500: '#3b82f6' }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 15px rgba(13, 148, 136, 0.3)'
                     }
                 }
             }
@@ -102,19 +115,19 @@
 <body class="text-stone-800 tap-highlight-transparent">
     
     <div id="root">
-        <!-- Loading State -->
-        <div class="flex-1 flex flex-col items-center justify-center text-stone-400 font-medium bg-stone-50">
-            <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-teal-500"></i>
-            <p>Loading BlockSync...</p>
+        <!-- Loader -->
+        <div class="flex-1 flex flex-col items-center justify-center bg-stone-50 text-stone-400">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-teal-600 mb-3"></i>
+            <span class="font-semibold text-sm tracking-wide">Initializing BlockSync...</span>
         </div>
     </div>
 
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, doc, updateDoc, getDoc, setDoc, deleteDoc, Timestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- CONFIG ---
+        // --- CONFIGURATION ---
         const SUBDIVISION_MAP = {
             "1": 67, "2": 98, "3": 57, "4": 54, "5": 43,
             "6": 13, "7": 18, "8": 18, "9": 16, "10": 2,
@@ -123,13 +136,10 @@
             "21": 42, "22": 38, "23": 34, "24": 30, "25": 10
         };
 
-        const DEFAULT_CATEGORIES = ["Waste Collection", "Monthly Dues", "Security Fee"];
-        
-        // REMOVED HARDCODED ACCESS CODE
-        // We now check Firestore collection: 'community_codes', document ID: 'CODE_HERE'
+        const SINKING_FUND_RATE = 0.10; 
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCApFluUkql1dqrGwH5r67DO6E-L-ez-OM",
+            apiKey: "AIzaSyCApFluUkql1dqrGwH5r67DO6E-L-ez-OM", 
             authDomain: "blocksync-d48e5.firebaseapp.com",
             projectId: "blocksync-d48e5",
             storageBucket: "blocksync-d48e5.firebasestorage.app",
@@ -141,1005 +151,1013 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- HELPERS ---
+        // --- HELPER FUNCTIONS ---
         const formatMoney = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
-        const getMonthYear = (dateObj) => dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
-        const formatDateDisplay = (dateObj) => dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        const toInputDate = (dateObj) => dateObj.toISOString().split('T')[0];
-        const toInputMonth = (dateObj) => dateObj.toISOString().slice(0, 7);
-
-        // --- SHARED UI COMPONENTS ---
+        const formatDate = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        // --- CUSTOM UI PRIMITIVES ---
 
         const Toast = ({ message, type, onClose }) => {
-            React.useEffect(() => { const t = setTimeout(onClose, 2500); return () => clearTimeout(t); }, [onClose]);
-            const color = type === 'error' ? 'bg-red-500' : (type === 'warning' ? 'bg-orange-500' : 'bg-stone-900');
+            React.useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+            const colors = { success: 'bg-teal-600', error: 'bg-red-500', warning: 'bg-orange-500', info: 'bg-stone-800' };
             return (
-                <div className="fixed top-24 left-0 right-0 z-[250] flex justify-center pointer-events-none px-4">
-                    <div className={`${color} text-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3 animate-pop pointer-events-auto max-w-sm`}>
-                        <i className={`fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}`}></i>
+                <div className="fixed top-6 left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
+                    <div className={`${colors[type]} text-white px-5 py-3 rounded-full shadow-lg shadow-black/10 flex items-center gap-3 animate-scale-in pointer-events-auto`}>
+                        <i className={`fa-solid ${icons[type]}`}></i>
                         <span className="font-semibold text-sm">{message}</span>
                     </div>
                 </div>
             );
         };
 
-        // FIXED MODAL v1.1.4: Smart Viewport Centering & Auto-Scroll
-        const Modal = ({ children, onClose }) => {
-            const modalRef = React.useRef(null);
-            React.useEffect(() => {
-                if (modalRef.current) {
-                    modalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, []);
-
-            return (
-                <div className="fixed inset-0 z-[200] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" onClick={onClose}>
-                    <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm transition-opacity"></div>
-                    <div className="flex min-h-full items-center justify-center p-4 pt-24 text-center">
-                        <div 
-                            ref={modalRef}
-                            className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl animate-pop overflow-hidden z-10" 
-                            onClick={e => e.stopPropagation()}
-                        >
-                            {children}
+        const Modal = ({ children, onClose, title }) => (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+                <div className="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+                    {title && (
+                        <div className="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-stone-50 sticky top-0 z-10 shrink-0">
+                            <h3 className="font-bold text-stone-800">{title}</h3>
+                            <button onClick={onClose} className="w-8 h-8 rounded-full bg-stone-200 text-stone-500 hover:bg-stone-300 flex items-center justify-center transition">
+                                <i className="fa-solid fa-times"></i>
+                            </button>
                         </div>
+                    )}
+                    <div className="flex-1 overflow-y-auto scroll-area">
+                        {children}
                     </div>
                 </div>
-            );
-        };
-
-        const PageContainer = ({ children }) => (
-            <div className="max-w-lg mx-auto w-full space-y-6 pb-20 animate-enter px-4 pt-6">
-                {children}
             </div>
         );
 
-        // --- NEW COMPONENT: ACCESS GATE (BACKEND VERIFIED) ---
-        const AccessGate = ({ onGrant }) => {
-            const [code, setCode] = React.useState("");
-            const [loading, setLoading] = React.useState(false);
-            const [error, setError] = React.useState("");
+        const CustomDatePicker = ({ value, onChange, label }) => {
+            const [open, setOpen] = React.useState(false);
+            const [viewDate, setViewDate] = React.useState(value ? new Date(value) : new Date());
+            const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+            const firstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
 
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                setError("");
-                
-                const cleanCode = code.trim().toUpperCase();
+            const handleDayClick = (day) => {
+                const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+                const offset = newDate.getTimezoneOffset();
+                const adjustedDate = new Date(newDate.getTime() - (offset*60*1000));
+                onChange(adjustedDate.toISOString().split('T')[0]);
+                setOpen(false);
+            };
 
-                try {
-                    // Check against backend DB instead of hardcoded string
-                    const docRef = doc(db, "community_codes", cleanCode);
-                    const docSnap = await getDoc(docRef);
+            const changeMonth = (delta) => {
+                const d = new Date(viewDate);
+                d.setMonth(d.getMonth() + delta);
+                setViewDate(d);
+            };
 
-                    if (docSnap.exists() && docSnap.data().active === true) {
-                        localStorage.setItem('blocksync_access_v1', 'granted');
-                        onGrant();
-                    } else {
-                        setError("Invalid Code");
-                    }
-                } catch (err) {
-                    console.error(err);
-                    setError("Connection Error");
-                } finally {
-                    setLoading(false);
+            const generateGrid = () => {
+                const y = viewDate.getFullYear();
+                const m = viewDate.getMonth();
+                const days = daysInMonth(y, m);
+                const start = firstDayOfMonth(y, m);
+                const grid = [];
+                for(let i=0; i<start; i++) grid.push(<div key={`e-${i}`} />);
+                for(let i=1; i<=days; i++) {
+                    const isSelected = value && new Date(value).getDate() === i && new Date(value).getMonth() === m;
+                    const isToday = new Date().getDate() === i && new Date().getMonth() === m && new Date().getFullYear() === y;
+                    grid.push(
+                        <button key={i} onClick={() => handleDayClick(i)} className={`h-9 w-9 rounded-full text-sm font-medium flex items-center justify-center transition ${isSelected ? 'bg-teal-600 text-white shadow-lg shadow-teal-200' : isToday ? 'bg-teal-50 text-teal-600 border border-teal-200' : 'hover:bg-stone-100 text-stone-600'}`}>{i}</button>
+                    );
                 }
+                return grid;
             };
 
             return (
-                <div className="fixed inset-0 z-[300] bg-stone-100 flex flex-col items-center justify-center p-6 animate-fade-in">
-                    <div className="w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-8 text-center border border-stone-200">
-                        <div className="w-20 h-20 bg-teal-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                            <img src="./favicon.png" alt="Logo" className="w-15 h-15 object-contain" />
-                        </div>
-                        <h2 className="text-2xl font-extrabold text-stone-800 mb-2">BlockSync</h2>
-                        <p className="text-stone-500 text-sm mb-8">Sonera Homeowners Association</p>
-                        
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="relative">
-                                <input 
-                                    type="text" 
-                                    value={code}
-                                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                                    placeholder="Enter Community Code"
-                                    className={`modern-input text-center text-lg tracking-widest font-bold uppercase placeholder:normal-case placeholder:font-normal placeholder:tracking-normal ${error ? 'border-red-500 bg-red-50 text-red-600' : 'focus:border-teal-500'}`}
-                                    autoFocus
-                                    disabled={loading}
-                                />
-                                {error && <div className="absolute inset-y-0 right-4 flex items-center text-red-500"><i className="fa-solid fa-circle-exclamation"></i></div>}
+                <div className="relative">
+                    {label && <label className="block text-xs font-bold text-stone-400 uppercase mb-1 ml-1">{label}</label>}
+                    <button type="button" onClick={() => setOpen(!open)} className="w-full h-12 bg-stone-100 rounded-xl px-4 flex items-center justify-between font-semibold text-stone-700 hover:bg-stone-200 transition border border-transparent focus:border-teal-500 focus:bg-white">
+                        <span>{value ? formatDate(new Date(value)) : "Select Date"}</span>
+                        <i className="fa-regular fa-calendar text-stone-400"></i>
+                    </button>
+                    
+                    {open && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
+                            <div className="relative bg-white w-full max-w-sm rounded-2xl shadow-xl z-50 p-4 border border-stone-100 animate-scale-in">
+                                <div className="flex justify-between items-center mb-4">
+                                    <button type="button" onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-full hover:bg-stone-100"><i className="fa-solid fa-chevron-left text-xs"></i></button>
+                                    <span className="font-bold text-stone-800">{viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                                    <button type="button" onClick={() => changeMonth(1)} className="w-8 h-8 rounded-full hover:bg-stone-100"><i className="fa-solid fa-chevron-right text-xs"></i></button>
+                                </div>
+                                <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                                    {['S','M','T','W','T','F','S'].map((d,i) => <span key={i} className="text-xs font-bold text-stone-300">{d}</span>)}
+                                </div>
+                                <div className="grid grid-cols-7 gap-1">
+                                    {generateGrid()}
+                                </div>
                             </div>
-                            
-                            <button 
-                                type="submit" 
-                                disabled={loading}
-                                className="w-full py-4 bg-stone-900 text-white rounded-xl font-bold shadow-lg hover:bg-stone-800 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-                            >
-                                {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <span>Enter Community</span>}
-                            </button>
-                        </form>
-                        
-                        <p className="mt-6 text-xs text-stone-300 font-medium">Secured Access v1.1.4</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const CustomSelect = ({ label, value, options, onChange, placeholder = "Select...", disabled = false }) => {
+            const [open, setOpen] = React.useState(false);
+            const selectedLabel = options.find(o => o.value == value)?.label || value || placeholder;
+
+            return (
+                <div className={`relative ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                    {label && <label className="block text-xs font-bold text-stone-400 uppercase mb-1 ml-1">{label}</label>}
+                    <button type="button" onClick={() => !disabled && setOpen(!open)} className="w-full h-12 bg-stone-100 rounded-xl px-4 flex items-center justify-between font-semibold text-stone-700 hover:bg-stone-200 transition border border-transparent focus:border-teal-500 focus:bg-white text-left truncate">
+                        <span className="truncate">{selectedLabel}</span>
+                        <i className="fa-solid fa-chevron-down text-xs text-stone-400"></i>
+                    </button>
+                    {open && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
+                            <div className="relative bg-white w-full max-w-sm rounded-2xl shadow-xl z-50 border border-stone-100 animate-scale-in max-h-[60vh] flex flex-col">
+                                <div className="px-6 py-4 border-b border-stone-100 font-bold text-stone-800 flex justify-between items-center sticky top-0 bg-white z-10 rounded-t-2xl">
+                                    <span>{label || "Select Option"}</span>
+                                    <button onClick={()=>setOpen(false)} className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center hover:bg-stone-200"><i className="fa-solid fa-times text-stone-500"></i></button>
+                                </div>
+                                <div className="overflow-y-auto scroll-area p-2">
+                                    {options.length > 0 ? options.map((opt, idx) => (
+                                        <button 
+                                            key={idx} 
+                                            type="button" 
+                                            disabled={opt.disabled}
+                                            onClick={() => { if(!opt.disabled) { onChange(opt.value); setOpen(false); }}} 
+                                            className={`w-full text-left px-4 py-4 text-sm font-medium rounded-xl mb-1 transition flex justify-between items-center
+                                                ${value == opt.value ? 'bg-teal-50 text-teal-600' : 'text-stone-600 hover:bg-stone-50'}
+                                                ${opt.disabled ? 'opacity-50 cursor-not-allowed bg-stone-50' : ''}
+                                            `}
+                                        >
+                                            <span>{opt.label}</span>
+                                            {opt.disabled && <span className="text-[10px] font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded">{opt.disabledLabel || "UNAVAILABLE"}</span>}
+                                        </button>
+                                    )) : <div className="p-4 text-center text-stone-400">No options available</div>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- COMPONENTS ---
+
+        const ResidentUnitChecker = () => {
+            const [block, setBlock] = React.useState("");
+            const [lot, setLot] = React.useState("");
+            const [status, setStatus] = React.useState(null);
+            const [history, setHistory] = React.useState([]);
+            const [loading, setLoading] = React.useState(false);
+
+            const lotOptions = React.useMemo(() => {
+                if(!block) return [];
+                const max = SUBDIVISION_MAP[block] || 0;
+                return Array.from({length: max}, (_, i) => ({ value: (i+1).toString(), label: `Lot ${i+1}` }));
+            }, [block]);
+
+            const checkStatus = async () => {
+                if(!block || !lot) return;
+                setLoading(true);
+                const q = query(collection(db, "payments"), where("block", "==", block), where("lot", "==", lot), where("status", "==", "verified"), orderBy("datePaid", "desc"));
+                const snap = await onSnapshot(q, (snapshot) => {
+                    const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    const payments = docs.sort((a,b) => b.datePaid.seconds - a.datePaid.seconds);
+                    setHistory(payments.slice(0, 3));
+                    if (payments.length === 0) {
+                        setStatus({ color: 'red', text: 'No Records Found', sub: 'Please contact admin.' });
+                    } else {
+                        const lastDate = payments[0].datePaid.toDate();
+                        const now = new Date();
+                        const diffMonths = (now.getFullYear() - lastDate.getFullYear()) * 12 + (now.getMonth() - lastDate.getMonth());
+                        if (diffMonths <= 1) setStatus({ color: 'green', text: 'Good Standing', sub: 'Thank you for paying!' });
+                        else if (diffMonths <= 3) setStatus({ color: 'yellow', text: 'Payment Due', sub: 'Please settle soon.' });
+                        else setStatus({ color: 'red', text: 'In Arrears', sub: `${diffMonths} months overdue.` });
+                    }
+                    setLoading(false);
+                }, () => { setLoading(false); setStatus({ color: 'yellow', text: 'System Update', sub: 'Status currently unavailable.' }); });
+            };
+
+            const reset = () => { setStatus(null); setBlock(""); setLot(""); };
+
+            if(status) {
+                const colors = { green: "bg-teal-500 shadow-teal-200", yellow: "bg-orange-400 shadow-orange-200", red: "bg-red-500 shadow-red-200" };
+                return (
+                    <div className="animate-scale-in">
+                        <div className={`rounded-3xl p-8 text-center text-white shadow-xl mb-6 ${colors[status.color]}`}>
+                            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-md"><i className={`fa-solid ${status.color === 'green' ? 'fa-check' : status.color === 'yellow' ? 'fa-clock' : 'fa-triangle-exclamation'} text-4xl`}></i></div>
+                            <h2 className="text-3xl font-bold mb-1">{status.text}</h2>
+                            <p className="opacity-90 font-medium">{status.sub}</p>
+                            <div className="mt-6 inline-block bg-black/10 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Unit {block}-{lot}</div>
+                        </div>
+                        <div className="bg-white rounded-2xl shadow-soft border border-stone-100 overflow-hidden mb-6">
+                            <div className="bg-stone-50 px-6 py-3 border-b border-stone-100 font-bold text-stone-500 text-xs uppercase tracking-wider">Recent Activity</div>
+                            {history.length > 0 ? (
+                                <div className="divide-y divide-stone-100">{history.map(h => (<div key={h.id} className="p-4 flex justify-between items-center"><div><div className="font-bold text-stone-700">{h.category || 'Monthly Dues'}</div><div className="text-xs text-stone-400">{formatDate(h.datePaid.toDate())}</div></div><div className="font-bold text-teal-600">{formatMoney(h.amount)}</div></div>))}</div>
+                            ) : <div className="p-6 text-center text-stone-400 text-sm">No recent history visible.</div>}
+                        </div>
+                        <button onClick={reset} className="w-full h-14 bg-stone-800 text-white rounded-xl font-bold shadow-lg">Check Another Unit</button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="animate-fade-in space-y-6">
+                    <div className="bg-white p-6 rounded-3xl shadow-soft border border-stone-100">
+                        <div className="text-center mb-6">
+                            <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mx-auto mb-3"><i className="fa-solid fa-magnifying-glass text-xl"></i></div>
+                            <h3 className="font-bold text-lg text-stone-800">Unit Status Check</h3>
+                            <p className="text-stone-400 text-sm">Enter details to see standing.</p>
+                        </div>
+                        <div className="space-y-4">
+                            <CustomSelect label="Block Number" value={block} onChange={(v) => { setBlock(v); setLot(""); }} options={Object.keys(SUBDIVISION_MAP).sort((a,b)=>a-b).map(k => ({ value: k, label: `Block ${k}` }))} />
+                            <CustomSelect label="Lot Number" value={lot} onChange={setLot} disabled={!block} placeholder={!block ? "Select Block First" : "Select Lot"} options={lotOptions} />
+                            <button onClick={checkStatus} disabled={!block || !lot || loading} className="w-full h-14 bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-200 mt-2 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95">{loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : "Check Status"}</button>
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        // --- FEATURE COMPONENTS ---
-
-        const CategoryManagerModal = ({ onClose, showToast }) => {
-            const [categories, setCategories] = React.useState([]);
+        const CategoryManager = ({ onClose, showToast }) => {
+            const [list, setList] = React.useState([]);
             const [newCat, setNewCat] = React.useState("");
-            const [editIdx, setEditIdx] = React.useState(-1);
-            const [editVal, setEditVal] = React.useState("");
+            const [loading, setLoading] = React.useState(true);
 
             React.useEffect(() => {
                 const unsub = onSnapshot(doc(db, "config", "categories"), (snap) => {
-                    if (snap.exists()) setCategories(snap.data().list || DEFAULT_CATEGORIES);
-                    else setCategories(DEFAULT_CATEGORIES);
-                });
-                return () => unsub();
-            }, []);
-
-            const saveList = async (newList) => {
-                try {
-                    await setDoc(doc(db, "config", "categories"), { list: newList }, { merge: true });
-                } catch (e) { showToast("Error saving categories", "error"); }
-            };
-
-            const addCat = async (e) => {
-                e.preventDefault();
-                if (!newCat.trim()) return;
-                const updated = [...categories, newCat.trim()];
-                await saveList(updated);
-                setNewCat("");
-                showToast("Category added", "success");
-            };
-
-            const deleteCat = async (idx) => {
-                if(!confirm("Remove this category from the dropdown? Past records won't be affected.")) return;
-                const updated = categories.filter((_, i) => i !== idx);
-                await saveList(updated);
-            };
-
-            const startEdit = (idx) => {
-                setEditIdx(idx);
-                setEditVal(categories[idx]);
-            };
-
-            const saveEdit = async (idx) => {
-                const updated = [...categories];
-                updated[idx] = editVal.trim();
-                await saveList(updated);
-                setEditIdx(-1);
-            };
-
-            return (
-                <Modal onClose={onClose}>
-                    <div className="p-6 h-[70vh] flex flex-col">
-                        <div className="flex justify-between items-center mb-6 shrink-0">
-                            <h3 className="font-bold text-lg">Manage Categories</h3>
-                            <button onClick={onClose}><i className="fa-solid fa-times text-stone-400 text-xl"></i></button>
-                        </div>
-                        
-                        <div className="flex-1 overflow-y-auto scroll-area space-y-3 mb-4 min-h-0">
-                            {categories.map((cat, idx) => (
-                                <div key={idx} className="flex items-center gap-2 bg-stone-50 p-3 rounded-xl border border-stone-100">
-                                    {editIdx === idx ? (
-                                        <>
-                                            <input className="flex-1 bg-white border border-stone-200 rounded-lg px-2 py-1 outline-none" value={editVal} onChange={e=>setEditVal(e.target.value)} autoFocus />
-                                            <button onClick={()=>saveEdit(idx)} className="text-teal-600 p-2"><i className="fa-solid fa-check"></i></button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="flex-1 font-medium text-stone-600">{cat}</span>
-                                            <button onClick={()=>startEdit(idx)} className="text-stone-400 hover:text-teal-600 p-2"><i className="fa-solid fa-pen"></i></button>
-                                            <button onClick={()=>deleteCat(idx)} className="text-stone-400 hover:text-red-500 p-2"><i className="fa-solid fa-trash"></i></button>
-                                        </>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        <form onSubmit={addCat} className="pt-4 border-t border-stone-100 shrink-0">
-                            <div className="flex gap-2">
-                                <input placeholder="New Category Name" value={newCat} onChange={e=>setNewCat(e.target.value)} className="modern-input h-12" />
-                                <button type="submit" className="bg-stone-900 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"><i className="fa-solid fa-plus"></i></button>
-                            </div>
-                        </form>
-                    </div>
-                </Modal>
-            );
-        };
-
-        const LoginModal = ({ onClose }) => {
-            const [user, setUser] = React.useState("");
-            const [pass, setPass] = React.useState("");
-            const [err, setErr] = React.useState("");
-            const [load, setLoad] = React.useState(false);
-
-            const handle = async (e) => {
-                e.preventDefault();
-                setLoad(true); setErr("");
-                const email = user.toLowerCase().trim() === "admin" ? "admin@sonera.com" : user;
-                try {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    onClose();
-                } catch (e) { setErr("Access Denied"); }
-                setLoad(false);
-            };
-
-            return (
-                <Modal onClose={onClose}>
-                    <div className="p-8 text-center bg-stone-50 shrink-0">
-                        <div className="w-14 h-14 bg-white text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
-                            <i className="fa-solid fa-fingerprint"></i>
-                        </div>
-                        <h2 className="font-bold text-xl text-stone-800">Admin Access</h2>
-                    </div>
-                    <form onSubmit={handle} className="p-8 pt-4 space-y-4 shrink-0">
-                        {err && <div className="bg-red-50 text-red-500 p-3 rounded-xl text-center text-sm font-bold">{err}</div>}
-                        <input className="modern-input" placeholder="Username" value={user} onChange={e=>setUser(e.target.value)} required />
-                        <input className="modern-input" type="password" placeholder="Password" value={pass} onChange={e=>setPass(e.target.value)} required />
-                        <div className="flex gap-3 pt-2">
-                            <button type="button" onClick={onClose} className="flex-1 py-4 text-stone-400 font-bold hover:text-stone-600 transition">Cancel</button>
-                            <button type="submit" disabled={load} className="flex-1 py-4 bg-teal-600 text-white rounded-2xl font-bold shadow-lg shadow-teal-200 hover:bg-teal-700 transition">{load ? '...' : 'Unlock'}</button>
-                        </div>
-                    </form>
-                </Modal>
-            );
-        };
-
-        const InitBalModal = ({ initialBalance, onSave, onClose }) => {
-            const [val, setVal] = React.useState(initialBalance || "");
-            return (
-                <Modal onClose={onClose}>
-                    <div className="p-8 text-center">
-                        <div className="w-14 h-14 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                            <i className="fa-solid fa-coins"></i>
-                        </div>
-                        <h3 className="font-bold text-xl mb-2">Starting Fund</h3>
-                        <p className="text-stone-500 text-sm leading-relaxed mb-6">
-                            Please enter the <b>Total Remaining Funds</b> from before using BlockSync. This sets your baseline.
-                        </p>
-                        <input type="number" value={val} onChange={e=>setVal(e.target.value)} className="modern-input text-center text-2xl font-bold mb-6 h-auto" placeholder="0.00" autoFocus />
-                        <div className="flex gap-3">
-                            <button onClick={onClose} className="flex-1 py-3.5 bg-stone-100 rounded-xl font-bold text-stone-500">Cancel</button>
-                            <button onClick={()=>onSave(val)} className="flex-1 py-3.5 bg-teal-600 text-white rounded-xl font-bold">Save Baseline</button>
-                        </div>
-                    </div>
-                </Modal>
-            );
-        };
-
-        const ExpenseModal = ({ expense, onClose, showToast }) => {
-            const isEdit = !!expense;
-            const [title, setTitle] = React.useState(expense ? expense.title : "");
-            const [amount, setAmount] = React.useState(expense ? expense.amount : "");
-            const [date, setDate] = React.useState(expense ? toInputDate(expense.date.toDate()) : toInputDate(new Date()));
-            const [del, setDel] = React.useState(false);
-
-            const handleSave = async (e) => {
-                e.preventDefault();
-                const payload = { 
-                    title, 
-                    amount: parseFloat(amount), 
-                    date: Timestamp.fromDate(new Date(date)) 
-                };
-
-                try {
-                    if (isEdit) {
-                        await updateDoc(doc(db, "expenses", expense.id), payload);
-                        showToast("Expense updated", "success");
-                    } else {
-                        await addDoc(collection(db, "expenses"), payload);
-                        showToast("Expense added", "success");
-                    }
-                    onClose();
-                } catch(err) { showToast(err.message, "error"); }
-            };
-
-            const handleDelete = async () => {
-                try {
-                    await deleteDoc(doc(db, "expenses", expense.id));
-                    showToast("Expense deleted", "success");
-                    onClose();
-                } catch(err) { showToast(err.message, "error"); }
-            };
-
-            return (
-                <Modal onClose={onClose}>
-                    {del ? (
-                        <div className="p-8 text-center">
-                            <div className="w-14 h-14 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                                <i className="fa-solid fa-trash-can"></i>
-                            </div>
-                            <h3 className="font-bold text-lg mb-4">Delete this expense?</h3>
-                            <div className="flex gap-3">
-                                <button onClick={()=>setDel(false)} className="flex-1 py-3 bg-stone-100 rounded-xl font-bold text-stone-500">Cancel</button>
-                                <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Yes, Delete</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6 shrink-0">
-                                <h3 className="font-bold text-lg">{isEdit ? 'Edit Expense' : 'Record Expense'}</h3>
-                                <button onClick={onClose}><i className="fa-solid fa-times text-stone-400 text-xl"></i></button>
-                            </div>
-                            <form onSubmit={handleSave} className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Description</label>
-                                    <input placeholder="e.g. Street Light Repair" value={title} onChange={e=>setTitle(e.target.value)} className="modern-input" required />
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Amount</label>
-                                        <input type="number" placeholder="0.00" value={amount} onChange={e=>setAmount(e.target.value)} className="modern-input" required />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Date</label>
-                                        <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="modern-input" required />
-                                    </div>
-                                </div>
-                                <div className="flex gap-3 pt-2">
-                                    {isEdit && (
-                                        <button type="button" onClick={()=>setDel(true)} className="p-4 bg-red-50 text-red-500 rounded-xl font-bold hover:bg-red-100 transition">
-                                            <i className="fa-solid fa-trash"></i>
-                                        </button>
-                                    )}
-                                    <button type="submit" className="flex-1 py-4 bg-stone-900 text-white rounded-xl font-bold shadow-lg hover:bg-stone-800 transition">
-                                        {isEdit ? 'Update Expense' : 'Save Record'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    )}
-                </Modal>
-            );
-        };
-
-        const EditPaymentModal = ({ payment, onClose, showToast }) => {
-            const [amount, setAmount] = React.useState(payment.amount);
-            const [date, setDate] = React.useState(toInputDate(payment.datePaid.toDate()));
-            const [del, setDel] = React.useState(false);
-
-            const update = async () => {
-                try { await updateDoc(doc(db, "payments", payment.id), { amount: parseFloat(amount), datePaid: Timestamp.fromDate(new Date(date)) }); showToast("Updated!", "success"); onClose(); } catch(e){ showToast(e.message, "error"); }
-            };
-            const remove = async () => {
-                try { await deleteDoc(doc(db, "payments", payment.id)); showToast("Deleted!", "success"); onClose(); } catch(e){ showToast(e.message, "error"); }
-            };
-
-            return (
-                <Modal onClose={onClose}>
-                    {del ? (
-                        <div className="p-8 text-center">
-                            <i className="fa-solid fa-trash-can text-red-500 text-4xl mb-4"></i>
-                            <h3 className="font-bold text-lg mb-4">Delete this record?</h3>
-                            <div className="flex gap-2">
-                                <button onClick={()=>setDel(false)} className="flex-1 py-3 bg-stone-100 rounded-xl font-bold text-stone-500">No</button>
-                                <button onClick={remove} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Yes, Delete</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6 shrink-0">
-                                <h3 className="font-bold text-lg">Edit Record</h3>
-                                <button onClick={onClose}><i className="fa-solid fa-times text-stone-400 text-xl"></i></button>
-                            </div>
-                            <div className="bg-stone-50 p-4 rounded-xl mb-4 text-sm font-medium text-stone-600 flex justify-between">
-                                <span>Block {payment.block} Lot {payment.lot}</span>
-                                <span className="text-teal-600">{payment.category}</span>
-                            </div>
-                            <div className="space-y-4">
-                                <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} className="modern-input" />
-                                <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="modern-input" />
-                                <div className="flex gap-2 pt-2">
-                                    <button onClick={()=>setDel(true)} className="p-4 bg-red-50 text-red-500 rounded-xl"><i className="fa-solid fa-trash"></i></button>
-                                    <button onClick={update} className="flex-1 bg-stone-900 text-white rounded-xl font-bold">Save Changes</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </Modal>
-            );
-        };
-
-        // --- MAIN VIEWS ---
-
-        const ActiveUnitsMode = () => {
-            const [block, setBlock] = React.useState("1");
-            const [payments, setPayments] = React.useState([]);
-            const [loading, setLoading] = React.useState(true);
-
-            const lots = Array.from({length: SUBDIVISION_MAP[block]||20}, (_,i)=>i+1);
-            const totalUnits = Object.values(SUBDIVISION_MAP).reduce((a,b) => a+b, 0);
-
-            React.useEffect(() => {
-                const unsub = onSnapshot(collection(db, "payments"), (snapshot) => {
-                    const data = snapshot.docs.map(doc => doc.data());
-                    setPayments(data);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        setList(data.incomeList || []);
+                    } else setList([]);
                     setLoading(false);
                 });
                 return () => unsub();
             }, []);
 
-            // Logic to determine status
-            const getUnitStatus = () => {
-                const statusMap = {}; // Key: "Block-Lot", Value: "Active" | "Dormant" | "Never"
-                
-                // Group payments by unit
-                const unitPayments = {};
-                payments.forEach(p => {
-                    const key = `${p.block}-${p.lot}`;
-                    if (!unitPayments[key]) unitPayments[key] = [];
-                    unitPayments[key].push(p.datePaid.toDate());
-                });
-
-                const threeMonthsAgo = new Date();
-                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-                for (let b in SUBDIVISION_MAP) {
-                    for (let l = 1; l <= SUBDIVISION_MAP[b]; l++) {
-                        const key = `${b}-${l}`;
-                        const dates = unitPayments[key];
-
-                        if (!dates || dates.length === 0) {
-                            statusMap[key] = "Never";
-                        } else {
-                            dates.sort((a,b) => b - a);
-                            const latestDate = dates[0];
-                            if (latestDate >= threeMonthsAgo) {
-                                statusMap[key] = "Active";
-                            } else {
-                                statusMap[key] = "Dormant";
-                            }
-                        }
-                    }
-                }
-                return statusMap;
+            const addItem = async (e) => {
+                e.preventDefault();
+                if (!newCat.trim()) return;
+                const updated = [...list, newCat.trim()];
+                try { await setDoc(doc(db, "config", "categories"), { incomeList: updated }, { merge: true }); setNewCat(""); } catch(err) { showToast("Error saving", "error"); }
             };
 
-            const statusMap = React.useMemo(() => !loading ? getUnitStatus() : {}, [payments, loading]);
-
-            const stats = React.useMemo(() => {
-                let active = 0, dormant = 0, never = 0;
-                Object.values(statusMap).forEach(s => {
-                    if (s === "Active") active++;
-                    else if (s === "Dormant") dormant++;
-                    else never++;
-                });
-                return { active, dormant, never };
-            }, [statusMap]);
-
-            const collectionRate = totalUnits > 0 ? Math.round((stats.active / totalUnits) * 100) : 0;
+            const removeItem = async (item) => {
+                if(!confirm(`Remove "${item}"?`)) return;
+                const updated = list.filter(i => i !== item);
+                try { await setDoc(doc(db, "config", "categories"), { incomeList: updated }, { merge: true }); } catch(err) { showToast("Error removing", "error"); }
+            };
 
             return (
-                <PageContainer>
-                    <div className="glass-card p-6">
-                        <h2 className="text-xl font-bold text-stone-800 mb-4">Analytics</h2>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100">
-                                <p className="text-xs font-bold text-teal-600 uppercase mb-1">Collection Rate</p>
-                                <p className="text-2xl font-extrabold text-teal-800">{collectionRate}%</p>
-                            </div>
-                            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
-                                <p className="text-xs font-bold text-stone-500 uppercase mb-1">Total Units</p>
-                                <p className="text-2xl font-extrabold text-stone-700">{totalUnits}</p>
-                            </div>
+                <Modal title="Manage Fund Sources" onClose={onClose}>
+                    <div className="p-4">
+                        <div className="space-y-2 mb-4">
+                            {loading ? <div className="text-center py-4 text-stone-400"><i className="fa-solid fa-circle-notch fa-spin"></i></div> : list.length === 0 ? <div className="text-center py-4 text-stone-300 italic text-sm">No fund sources defined.</div> : list.map((item, i) => (<div key={i} className="flex justify-between items-center bg-stone-50 p-3 rounded-lg border border-stone-100"><span className="font-medium text-stone-700">{item}</span><button onClick={()=>removeItem(item)} className="text-stone-400 hover:text-red-500 px-2"><i className="fa-solid fa-trash"></i></button></div>))}
                         </div>
-                        <div className="mt-4 flex justify-between text-center divide-x divide-stone-100">
-                            <div className="flex-1">
-                                <div className="text-lg font-bold text-teal-600">{stats.active}</div>
-                                <div className="text-[10px] uppercase font-bold text-stone-400">Active</div>
-                            </div>
-                            <div className="flex-1">
-                                <div className="text-lg font-bold text-blue-400">{stats.dormant}</div>
-                                <div className="text-[10px] uppercase font-bold text-stone-400">Dormant</div>
-                            </div>
-                            <div className="flex-1">
-                                <div className="text-lg font-bold text-stone-400">{stats.never}</div>
-                                <div className="text-[10px] uppercase font-bold text-stone-400">No Record</div>
-                            </div>
-                        </div>
+                        <form onSubmit={addItem} className="flex gap-2"><input value={newCat} onChange={e=>setNewCat(e.target.value)} placeholder="New Fund Source Name" className="flex-1 h-12 bg-stone-100 rounded-xl px-4 outline-none focus:bg-white focus:border border border-transparent focus:border-teal-500 transition" /><button type="submit" className="w-12 h-12 bg-stone-800 text-white rounded-xl shadow-lg"><i className="fa-solid fa-plus"></i></button></form>
                     </div>
-
-                    <div className="glass-card p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-stone-700">Unit Status Map</h3>
-                            <div className="relative w-24">
-                                <select value={block} onChange={e=>setBlock(e.target.value)} className="modern-input py-2 h-10 text-sm appearance-none pr-8">
-                                    {Object.keys(SUBDIVISION_MAP).sort((a,b)=>a-b).map(b=><option key={b} value={b}>Blk {b}</option>)}
-                                </select>
-                                <i className="fa-solid fa-chevron-down absolute right-3 top-3 text-stone-400 pointer-events-none text-xs"></i>
-                            </div>
-                        </div>
-
-                        {loading ? <div className="text-center py-10 text-stone-300"><i className="fa-solid fa-circle-notch fa-spin text-2xl"></i></div> : (
-                            <div className="grid grid-cols-5 gap-2">
-                                {lots.map(n => {
-                                    const status = statusMap[`${block}-${n}`];
-                                    let cls = "bg-stone-100 text-stone-300"; // Default / Never
-                                    
-                                    if (status === "Active") {
-                                        cls = "bg-teal-500 text-white shadow-md shadow-teal-200 font-bold";
-                                    } else if (status === "Dormant") {
-                                        cls = "bg-stone-50 text-stone-400 border-2 border-blue-300 font-medium";
-                                    }
-
-                                    return (
-                                        <div key={n} className={`aspect-square rounded-xl text-sm flex items-center justify-center transition-all ${cls}`}>
-                                            {n}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                        <div className="mt-4 flex gap-4 justify-center text-xs text-stone-500">
-                            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-teal-500 rounded-full"></div> Active</div>
-                            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-stone-50 border-2 border-blue-300 rounded-full"></div> Dormant</div>
-                            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-stone-100 rounded-full"></div> No Rec</div>
-                        </div>
-                    </div>
-                </PageContainer>
+                </Modal>
             );
         };
 
-        const TallyMode = ({ showToast }) => {
-            const [block, setBlock] = React.useState("1");
-            const [categories, setCategories] = React.useState(DEFAULT_CATEGORIES);
-            const [cat, setCat] = React.useState("");
-            const [amt, setAmt] = React.useState(500);
-            const [date, setDate] = React.useState(toInputDate(new Date()));
-            const [sel, setSel] = React.useState([]);
-            const [existing, setExisting] = React.useState([]);
-            const [editPay, setEditPay] = React.useState(null);
-            const [lastTap, setLastTap] = React.useState({id:null, t:0});
-            const [showCatModal, setShowCatModal] = React.useState(false);
+        const TransactionRecorder = ({ showToast, setShowSettings, totalFunds }) => {
+            const [mode, setMode] = React.useState('income');
+            const [date, setDate] = React.useState(new Date().toISOString().split('T')[0]);
+            const [fundSources, setFundSources] = React.useState([]);
+            const [categoryBalances, setCategoryBalances] = React.useState({});
+            const [isClosedMonth, setIsClosedMonth] = React.useState(false);
+            
+            // Income
+            const [isBatch, setIsBatch] = React.useState(false);
+            const [block, setBlock] = React.useState("");
+            const [lot, setLot] = React.useState("");
+            const [selectedLots, setSelectedLots] = React.useState([]);
+            const [category, setCategory] = React.useState("");
+            const [paidUnits, setPaidUnits] = React.useState([]); 
+            
+            // Expense
+            const [expTitle, setExpTitle] = React.useState("");
+            const [fundSource, setFundSource] = React.useState(""); 
+            const [fundBalance, setFundBalance] = React.useState(null); 
+            const [qty, setQty] = React.useState(1);
+            
+            const [amount, setAmount] = React.useState("");
+            const [loading, setLoading] = React.useState(false);
 
-            const lots = Array.from({length: SUBDIVISION_MAP[block]||20}, (_,i)=>i+1);
-
-            // Fetch Configured Categories
+            // 1. Fetch Config
             React.useEffect(() => {
                 const unsub = onSnapshot(doc(db, "config", "categories"), (snap) => {
-                    if(snap.exists() && snap.data().list) {
-                        const list = snap.data().list;
-                        setCategories(list);
-                        if (!cat && list.length > 0) setCat(list[0]); // Set default if empty
-                    } else {
-                        setCat(DEFAULT_CATEGORIES[0]);
+                    if (snap.exists()) {
+                        const d = snap.data();
+                        const list = d.incomeList || [];
+                        setFundSources(list);
+                        if (!category && list.length > 0) setCategory(list[0]);
                     }
                 });
                 return () => unsub();
             }, []);
 
-            // Ensure cat is set after categories load
+            // 2. Fetch Balances for ALL categories (for disabled state dropdown)
             React.useEffect(() => {
-               if (!cat && categories.length > 0) setCat(categories[0]);
-            }, [categories]);
+                if(mode !== 'expense') return;
+                
+                const qP = query(collection(db, "payments"), where("status", "==", "verified"));
+                const qE = query(collection(db, "expenses"), where("status", "==", "verified"));
+                
+                let incomeMap = {};
+                let expenseMap = {};
 
+                const updateBals = () => {
+                    const bals = {};
+                    Object.keys(incomeMap).forEach(k => bals[k] = incomeMap[k]);
+                    Object.keys(expenseMap).forEach(k => {
+                        if(!bals[k]) bals[k] = 0;
+                        bals[k] -= expenseMap[k];
+                    });
+                    setCategoryBalances(bals);
+                };
+
+                const unsubP = onSnapshot(qP, pSnap => {
+                    incomeMap = {};
+                    pSnap.docs.forEach(d => {
+                        const cat = d.data().category;
+                        if(!incomeMap[cat]) incomeMap[cat] = 0;
+                        incomeMap[cat] += (d.data().amountOps || 0);
+                    });
+                    updateBals();
+                });
+
+                const unsubE = onSnapshot(qE, eSnap => {
+                    expenseMap = {};
+                    eSnap.docs.forEach(d => {
+                        const cat = d.data().category;
+                        if(!expenseMap[cat]) expenseMap[cat] = 0;
+                        expenseMap[cat] += (d.data().amountFromOps || 0);
+                    });
+                    updateBals();
+                });
+
+                return () => { unsubP(); unsubE(); };
+            }, [mode]);
+
+            // 3. Month Closing Check
             React.useEffect(() => {
-                const unsub = onSnapshot(query(collection(db,"payments"), where("block","==",block)), s => {
-                    setExisting(s.docs.map(d=>({id:d.id,...d.data()})));
+                const checkClosed = async () => {
+                    const month = date.slice(0, 7);
+                    const docSnap = await getDoc(doc(db, "closed_months", month));
+                    setIsClosedMonth(docSnap.exists());
+                };
+                checkClosed();
+            }, [date]);
+
+            // 4. Duplicate Check
+            React.useEffect(() => {
+                setPaidUnits([]); 
+                if(mode !== 'income' || !category) return;
+                
+                const [y, m, d] = date.split('-').map(Number);
+                const start = new Date(y, m - 1, 1);
+                const end = new Date(y, m, 0, 23, 59, 59);
+
+                const q = query(
+                    collection(db, "payments"),
+                    where("category", "==", category),
+                    where("status", "==", "verified"),
+                    where("datePaid", ">=", Timestamp.fromDate(start)),
+                    where("datePaid", "<=", Timestamp.fromDate(end))
+                );
+
+                const unsub = onSnapshot(q, (snap) => {
+                    const paid = snap.docs.map(d => `${d.data().block}-${d.data().lot}`);
+                    setPaidUnits(paid);
                 });
                 return () => unsub();
-            }, [block]);
+            }, [category, date, mode]);
 
-            React.useEffect(() => setSel([]), [block, cat, date]);
+            // 5. AUTO-COMPUTE FUND SOURCE (Live)
+            React.useEffect(() => {
+                if(mode !== 'expense' || !fundSource) { setFundBalance(null); return; }
+                
+                const qIn = query(collection(db, "payments"), where("category", "==", fundSource), where("status", "==", "verified"));
+                const qOut = query(collection(db, "expenses"), where("category", "==", fundSource), where("status", "==", "verified"));
 
-            const getPaid = () => {
-                if(!cat) return [];
-                const m = getMonthYear(new Date(date));
-                return existing.filter(p => p.category===cat && getMonthYear(p.datePaid.toDate())===m);
+                let totalIn = 0;
+                let totalOut = 0;
+
+                const updateLiveBalance = () => setFundBalance(totalIn - totalOut);
+
+                const unsubIn = onSnapshot(qIn, (snapIn) => {
+                    totalIn = 0;
+                    snapIn.docs.forEach(d => totalIn += (d.data().amountOps || 0));
+                    updateLiveBalance();
+                });
+
+                const unsubOut = onSnapshot(qOut, (snapOut) => {
+                    totalOut = 0;
+                    snapOut.docs.forEach(d => totalOut += (d.data().amountFromOps || 0));
+                    updateLiveBalance();
+                });
+
+                return () => { unsubIn(); unsubOut(); };
+            }, [fundSource, mode]);
+
+
+            const lotOptions = React.useMemo(() => {
+                if(!block) return [];
+                const max = SUBDIVISION_MAP[block] || 0;
+                return Array.from({length: max}, (_, i) => {
+                    const val = (i+1).toString();
+                    const isPaid = paidUnits.includes(`${block}-${val}`);
+                    return { 
+                        value: val, 
+                        label: `Lot ${val}`,
+                        disabled: isPaid,
+                        disabledLabel: 'PAID'
+                    };
+                });
+            }, [block, paidUnits]);
+
+            const toggleBatchLot = (l) => {
+                const s = l.toString();
+                if(paidUnits.includes(`${block}-${s}`)) return; 
+                setSelectedLots(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
             };
-            const paid = getPaid();
-            const paidIds = paid.map(p=>parseInt(p.lot));
 
-            const tapLot = (n) => {
-                const now = Date.now();
-                if(paidIds.includes(n)) {
-                    if(lastTap.id===n && now-lastTap.t<300) setEditPay(paid.find(p=>parseInt(p.lot)===n));
-                    else { setLastTap({id:n, t:now}); showToast("Already Paid! Double tap to edit.", "warning"); }
-                } else {
-                    setSel(prev => prev.includes(n) ? prev.filter(x=>x!==n) : [...prev,n]);
-                }
-            };
+            const expenseOptions = React.useMemo(() => {
+                return fundSources.map(c => ({
+                    value: c,
+                    label: c,
+                    disabled: (categoryBalances[c] || 0) <= 0,
+                    disabledLabel: '0.00'
+                }));
+            }, [fundSources, categoryBalances]);
 
-            const save = async () => {
-                if(!sel.length) return;
-                const bId = Date.now().toString();
+            const isGlobalZero = totalFunds <= 0;
+            const currentTotal = parseFloat(amount || 0) * parseInt(qty || 1);
+            const isOverBudget = currentTotal > totalFunds;
+
+            const handleSubmit = async () => {
+                if (isClosedMonth) { showToast("Month is Closed", "error"); return; }
+                if (!amount || parseFloat(amount) <= 0) { showToast("Invalid Amount", "error"); return; }
+                
+                setLoading(true);
                 try {
-                    await Promise.all(sel.map(n => addDoc(collection(db,"payments"), {
-                        block, lot:n.toString(), category:cat, amount:parseFloat(amt), status:"Paid", datePaid:Timestamp.fromDate(new Date(date)), batchId:bId
-                    })));
-                    showToast(`Saved ${sel.length} entries!`, "success");
-                    setSel([]);
-                } catch(e) { showToast(e.message, "error"); }
-            };
+                    const baseAmount = parseFloat(amount);
+                    const timestamp = Timestamp.fromDate(new Date(date));
+                    const batchId = Date.now().toString();
 
-            return (
-                <PageContainer>
-                    {showCatModal && <CategoryManagerModal onClose={()=>setShowCatModal(false)} showToast={showToast} />}
-                    {editPay && <EditPaymentModal payment={editPay} onClose={()=>setEditPay(null)} showToast={showToast}/>}
-                    
-                    <div className="glass-card p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-stone-700">Batch Settings</h3>
-                            <button onClick={()=>setShowCatModal(true)} className="text-stone-400 hover:text-teal-600 transition">
-                                <i className="fa-solid fa-gear text-lg"></i>
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                            <div>
-                                <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Block</label>
-                                <div className="relative">
-                                    <select value={block} onChange={e=>setBlock(e.target.value)} className="modern-input appearance-none">
-                                        {Object.keys(SUBDIVISION_MAP).sort((a,b)=>a-b).map(b=><option key={b} value={b}>{b}</option>)}
-                                    </select>
-                                    <i className="fa-solid fa-chevron-down absolute right-4 top-4 text-stone-400 pointer-events-none"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Date</label>
-                                <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="modern-input" />
-                            </div>
-                        </div>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Category</label>
-                                <div className="relative">
-                                    <select value={cat} onChange={e=>setCat(e.target.value)} className="modern-input appearance-none">
-                                        {categories.map((c,i) => <option key={i} value={c}>{c}</option>)}
-                                    </select>
-                                    <i className="fa-solid fa-chevron-down absolute right-4 top-4 text-stone-400 pointer-events-none"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Amount</label>
-                                <input type="number" value={amt} onChange={e=>setAmt(e.target.value)} className="modern-input text-teal-600 font-bold" />
-                            </div>
-                        </div>
-                    </div>
+                    if (mode === 'income') {
+                        if (!category) throw new Error("Missing Category");
+                        let targets = [];
+                        
+                        if (isBatch) {
+                            if (!block || selectedLots.length === 0) throw new Error("Select Block and at least one Lot");
+                            targets = selectedLots.map(l => ({ block, lot: l }));
+                        } else {
+                            if (!block || !lot) throw new Error("Missing Unit Info");
+                            targets = [{ block, lot }];
+                        }
 
-                    <div className="glass-card p-6">
-                        <div className="flex justify-between items-end mb-4">
-                            <h3 className="font-bold text-stone-700">Tap Lots</h3>
-                            <span className={`text-xs font-bold px-2 py-1 rounded-md ${sel.length?'bg-teal-100 text-teal-700':'bg-stone-100 text-stone-400'}`}>{sel.length} Selected</span>
-                        </div>
-                        <div className="grid grid-cols-5 gap-2">
-                            {lots.map(n => {
-                                const isP = paidIds.includes(n);
-                                const isS = sel.includes(n);
-                                let cls = "bg-stone-100 text-stone-400 border border-transparent";
-                                if(isP) cls = "bg-teal-50 text-teal-600 border-teal-100 shadow-sm font-extrabold";
-                                if(isS) cls = "bg-teal-600 text-white shadow-lg shadow-teal-200 scale-105";
-                                return <button key={n} onClick={()=>tapLot(n)} className={`aspect-square rounded-xl font-bold text-sm transition-all duration-200 ${cls}`}>{n}</button>
-                            })}
-                        </div>
-                    </div>
+                        const duplicates = targets.filter(t => paidUnits.includes(`${t.block}-${t.lot}`));
+                        if(duplicates.length > 0) throw new Error("Units already paid. Refreshing...");
 
-                    <button onClick={save} disabled={!sel.length} className="w-full py-4 bg-stone-900 text-white rounded-2xl font-bold shadow-xl disabled:opacity-50 disabled:shadow-none transition transform active:scale-95 mt-6 mb-10">
-                        Record {sel.length} Payments
-                    </button>
-                </PageContainer>
-            );
-        };
+                        const opsAmount = baseAmount * (1 - SINKING_FUND_RATE);
+                        const resAmount = baseAmount * SINKING_FUND_RATE;
+                        
+                        const batch = writeBatch(db);
+                        targets.forEach(t => {
+                            const ref = doc(collection(db, "payments"));
+                            batch.set(ref, {
+                                block: t.block, lot: t.lot, amount: baseAmount, amountOps: opsAmount, amountRes: resAmount, category, datePaid: timestamp, status: 'verified', recordedBy: auth.currentUser.uid, recordedAt: Timestamp.now(), batchId: isBatch ? batchId : null
+                            });
+                        });
+                        
+                        await batch.commit();
+                        showToast(`Recorded ${targets.length} Payment(s)`, "success");
+                        if (!isBatch) { setBlock(""); setLot(""); } else { setSelectedLots([]); }
+                    } else {
+                        // EXPENSE LOGIC
+                        if (!expTitle) throw new Error("Missing Description");
+                        if (!fundSource) throw new Error("Missing Fund Source");
+                        if (isOverBudget) throw new Error("Insufficient funds (Global)");
+                        
+                        const totalExpense = baseAmount * qty; 
+                        
+                        const bal = categoryBalances[fundSource] || 0;
+                        
+                        let amountFromOps = 0;
+                        let amountFromRes = 0;
 
-        const ViewerMode = () => {
-            const [sb, setSb] = React.useState("");
-            const [sl, setSl] = React.useState("");
-            const [viewMonth, setViewMonth] = React.useState(toInputMonth(new Date()));
-            const [pay, setPay] = React.useState([]);
-            const [load, setLoad] = React.useState(true);
+                        if (bal >= totalExpense) {
+                            amountFromOps = totalExpense;
+                        } else {
+                            amountFromOps = Math.max(0, bal);
+                            amountFromRes = totalExpense - amountFromOps;
+                        }
 
-            React.useEffect(() => {
-                const unsub = onSnapshot(collection(db,"payments"), s => {
-                    setPay(s.docs.map(d=>({id:d.id,...d.data()})));
-                    setLoad(false);
-                });
-                return () => unsub();
-            }, []);
-
-            let displayData = [...pay];
-            const isSearching = sb || sl;
-
-            if (isSearching) {
-                // Search Mode: Ignore Month, Filter by Unit, Sort Date Desc
-                if(sb) displayData = displayData.filter(p => p.block === sb);
-                if(sl) displayData = displayData.filter(p => p.lot === sl);
-                displayData.sort((a,b) => b.datePaid.seconds - a.datePaid.seconds);
-            } else {
-                // Default Mode: Filter by Month, Sort Block Asc -> Lot Asc
-                displayData = displayData.filter(p => {
-                    const d = p.datePaid.toDate();
-                    const m = d.toISOString().slice(0, 7);
-                    return m === viewMonth;
-                });
-                displayData.sort((a,b) => {
-                    const bDiff = parseInt(a.block) - parseInt(b.block);
-                    if (bDiff !== 0) return bDiff;
-                    return parseInt(a.lot) - parseInt(b.lot);
-                });
-            }
-
-            const grouped = displayData.reduce((a,c) => { (a[c.category]=a[c.category]||[]).push(c); return a; }, {});
-
-            return (
-                <PageContainer>
-                    <div className="glass-card p-6">
-                        <div className="flex justify-between items-center mb-1">
-                            <h2 className="text-2xl font-bold text-stone-800">Database</h2>
-                            {!isSearching && (
-                                <input type="month" value={viewMonth} onChange={e=>setViewMonth(e.target.value)} className="bg-stone-100 text-xs font-bold text-stone-600 rounded-lg px-2 py-1 border-none outline-none focus:ring-1 focus:ring-teal-500 h-8" />
-                            )}
-                        </div>
-                        <p className="text-stone-400 text-sm mb-6">
-                            {isSearching ? "Showing payment history" : "Showing records for selected month"}
-                        </p>
-                        <div className="flex gap-3">
-                            <div className="flex-1">
-                                <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Block</label>
-                                <input type="number" placeholder="#" value={sb} onChange={e=>setSb(e.target.value)} className="modern-input text-center text-lg" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="text-xs font-bold text-stone-400 ml-1 uppercase">Lot</label>
-                                <input type="number" placeholder="#" value={sl} onChange={e=>setSl(e.target.value)} className="modern-input text-center text-lg" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {load ? <div className="text-center py-10 text-stone-300"><i className="fa-solid fa-circle-notch fa-spin text-2xl"></i></div> :
-                        Object.keys(grouped).length === 0 ? 
-                        <div className="text-center py-12 opacity-50"><i className="fa-solid fa-folder-open text-4xl mb-2"></i><p>No records found</p></div> :
-                        Object.keys(grouped).map(cat => (
-                            <div key={cat} className="glass-card overflow-hidden animate-enter">
-                                <div className="bg-stone-50/80 px-6 py-4 border-b border-stone-100 flex justify-between items-center">
-                                    <h3 className="font-bold text-stone-700">{cat}</h3>
-                                    <span className="text-xs font-bold bg-white border border-stone-200 px-2 py-1 rounded-lg text-stone-500">{grouped[cat].length}</span>
-                                </div>
-                                <div className="divide-y divide-stone-50">
-                                    {grouped[cat].map(p => (
-                                        <div key={p.id} className="p-4 px-6 flex justify-between items-center hover:bg-stone-50 transition">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-xs border border-teal-100">
-                                                    {p.block}-{p.lot}
-                                                </div>
-                                                <div>
-                                                    <div className="text-xs text-stone-400 mb-0.5">{formatDateDisplay(p.datePaid.toDate())}</div>
-                                                    <div className="font-bold text-stone-700">{formatMoney(p.amount)}</div>
-                                                </div>
-                                            </div>
-                                            <i className="fa-solid fa-circle-check text-teal-500 text-lg"></i>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))
+                        await addDoc(collection(db, "expenses"), {
+                            title: expTitle,
+                            category: fundSource,
+                            qty: parseInt(qty),
+                            unitAmount: baseAmount,
+                            amount: totalExpense,
+                            amountFromOps,
+                            amountFromRes,
+                            date: timestamp,
+                            status: 'verified',
+                            recordedBy: auth.currentUser.uid,
+                            fundSource: amountFromRes > 0 ? 'split' : 'ops'
+                        });
+                        
+                        const msg = amountFromRes > 0 ? `Deficit covered: ₱${formatMoney(amountFromRes)} from Sinking Fund` : "Expense Recorded";
+                        showToast(msg, amountFromRes > 0 ? "warning" : "success");
+                        setExpTitle("");
+                        setQty(1);
+                        setFundSource(""); 
                     }
-                </PageContainer>
-            );
-        };
-
-        const SummaryMode = ({ user, showToast, scrollToTop }) => {
-            const [pay, setPay] = React.useState([]);
-            const [exp, setExp] = React.useState([]);
-            const [initBal, setInitBal] = React.useState(null);
-            const [showInit, setShowInit] = React.useState(false);
-            const [load, setLoad] = React.useState(true);
-            const [lastTap, setLastTap] = React.useState(0);
-            
-            // Modal States
-            const [editExpData, setEditExpData] = React.useState(null);
-            const [showExpenseModal, setShowExpenseModal] = React.useState(false);
-
-            React.useEffect(() => {
-                const u1 = onSnapshot(collection(db,"payments"), s=>setPay(s.docs.map(d=>d.data())));
-                const u2 = onSnapshot(query(collection(db,"expenses"), orderBy("date","desc")), s=>setExp(s.docs.map(d=>({id:d.id,...d.data()}))));
-                getDoc(doc(db,"config","finance")).then(d => {
-                    if(d.exists() && d.data().initialBalance!==undefined) setInitBal(d.data().initialBalance);
-                    else if(user) setShowInit(true);
-                    setLoad(false);
-                }).catch(()=>setLoad(false));
-                return () => { u1(); u2(); };
-            }, [user]);
-
-            const saveInit = async (v) => {
-                await setDoc(doc(db,"config","finance"), {initialBalance:parseFloat(v)}, {merge:true});
-                setInitBal(parseFloat(v)); setShowInit(false); showToast("Saved! Double tap header to edit.", "success");
+                    if(!isBatch) setAmount("");
+                } catch (err) { showToast(err.message || "Error saving", "error"); }
+                setLoading(false);
             };
-
-            const headerTap = () => { if(user) { const n=Date.now(); if(n-lastTap<300) setShowInit(true); setLastTap(n); }};
-            
-            const handleAddClick = () => {
-                setEditExpData(null);
-                setShowExpenseModal(true);
-            };
-
-            const handleEditClick = (expense) => {
-                setEditExpData(expense);
-                setShowExpenseModal(true);
-            };
-
-            // Logic
-            const mData = {};
-            pay.forEach(p => { const k=getMonthYear(p.datePaid.toDate()); if(!mData[k]) mData[k]={c:0,e:0,items:[]}; mData[k].c+=(p.amount||0); });
-            exp.forEach(e => { const k=getMonthYear(e.date.toDate()); if(!mData[k]) mData[k]={c:0,e:0,items:[]}; mData[k].e+=(e.amount||0); mData[k].items.push(e); });
-            
-            const keys = Object.keys(mData).sort((a,b)=>new Date(a)-new Date(b)); 
-            const sKeys = keys.sort((a,b) => Date.parse(`1 ${a}`) - Date.parse(`1 ${b}`));
-
-            let run = initBal || 0;
-            const report = sKeys.map(k => {
-                const d = mData[k];
-                const start = run;
-                run += (d.c - d.e);
-                return { label:k, start, end:run, ...d };
-            }).reverse();
 
             return (
-                <PageContainer>
-                    {showExpenseModal && (
-                        <ExpenseModal 
-                            expense={editExpData} 
-                            onClose={() => setShowExpenseModal(false)} 
-                            showToast={showToast} 
-                        />
-                    )}
-                    
-                    <div onClick={headerTap} className="glass-card p-6 cursor-pointer select-none relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition">
-                            <i className="fa-solid fa-chart-pie text-6xl"></i>
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center px-1">
+                         <div className="bg-stone-100 p-1 rounded-2xl flex font-bold text-sm w-full">
+                            <button onClick={()=>setMode('income')} className={`flex-1 py-3 rounded-xl transition shadow-sm ${mode==='income' ? 'bg-white text-teal-600 shadow' : 'text-stone-400'}`}>Received (In)</button>
+                            <button onClick={()=>setMode('expense')} className={`flex-1 py-3 rounded-xl transition shadow-sm ${mode==='expense' ? 'bg-white text-orange-500 shadow' : 'text-stone-400'}`}>Paid Out (Out)</button>
                         </div>
-                        <h2 className="text-2xl font-bold text-stone-800 mb-1">Financial Summary</h2>
-                        <p className="text-stone-400 text-sm">Transparency Report</p>
                     </div>
 
-                    {showInit && <InitBalModal initialBalance={initBal} onSave={saveInit} onClose={()=>setShowInit(false)} />}
-
-                    {user && (
-                        <button 
-                            onClick={handleAddClick}
-                            className="w-full py-4 bg-teal-600 text-white rounded-2xl font-bold shadow-lg shadow-teal-200 hover:bg-teal-700 transition transform active:scale-95 flex items-center justify-center gap-2"
-                        >
-                            <i className="fa-solid fa-plus-circle text-lg"></i>
-                            Add Expense
-                        </button>
-                    )}
-
-                    {load ? <div className="text-center py-10 text-stone-300"><i className="fa-solid fa-circle-notch fa-spin text-2xl"></i></div> :
-                        report.map(r => (
-                            <div key={r.label} className="glass-card overflow-hidden animate-enter">
-                                <div className="bg-stone-50/80 px-6 py-4 border-b border-stone-100 flex justify-between items-center">
-                                    <h3 className="font-bold text-stone-700">{r.label}</h3>
-                                    <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${r.end>=0?'bg-teal-50 text-teal-700 border-teal-100':'bg-red-50 text-red-700 border-red-100'}`}>
-                                        Funds: {formatMoney(r.end)}
-                                    </span>
-                                </div>
-                                <div className="p-6">
-                                    <div className="bg-stone-50 rounded-xl p-3 flex justify-between items-center mb-4 border border-stone-100">
-                                        <span className="text-xs font-bold text-stone-400 uppercase">Previous</span>
-                                        <span className="font-bold text-stone-600">{formatMoney(r.start)}</span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 text-center">
-                                        <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-50">
-                                            <div className="text-xs font-bold text-teal-400 uppercase mb-1">In</div>
-                                            <div className="font-bold text-stone-700">{formatMoney(r.c)}</div>
-                                        </div>
-                                        <div className="p-3 rounded-2xl bg-red-50/50 border border-red-50">
-                                            <div className="text-xs font-bold text-red-400 uppercase mb-1">Out</div>
-                                            <div className="font-bold text-stone-700">{formatMoney(r.e)}</div>
+                    <div className={`bg-white p-6 rounded-3xl shadow-soft border border-stone-100 animate-slide-up ${isClosedMonth ? 'opacity-70 pointer-events-none grayscale' : ''}`}>
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <CustomDatePicker label="Transaction Date" value={date} onChange={setDate} />
+                                {isClosedMonth && <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-xl rounded-tr-xl"><i className="fa-solid fa-lock mr-1"></i> CLOSED</div>}
+                            </div>
+                            
+                            {mode === 'income' ? (
+                                <>
+                                    <div className="flex justify-between items-center bg-stone-50 p-2 rounded-xl border border-stone-100">
+                                        <label className="text-xs font-bold text-stone-400 uppercase ml-2">Batch Mode</label>
+                                        <div className="relative inline-block w-12 h-6 mr-1 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" name="toggle" id="toggle" className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-stone-200" checked={isBatch} onChange={()=>setIsBatch(!isBatch)}/>
+                                            <label htmlFor="toggle" className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors ${isBatch ? 'bg-teal-500' : 'bg-stone-200'}`}></label>
                                         </div>
                                     </div>
-                                    {r.items.length > 0 && (
-                                        <div className="mt-6 border-t border-stone-100 pt-4">
-                                            <p className="text-xs font-bold text-stone-400 uppercase mb-3">Expenses</p>
-                                            <div className="space-y-3">
-                                                {r.items.map(i => (
-                                                    <div key={i.id} className="flex justify-between text-sm group">
-                                                        <div className="flex items-center gap-2">
-                                                            {user && <button onClick={()=>handleEditClick(i)}><i className="fa-solid fa-pencil text-stone-300 hover:text-orange-500"></i></button>}
-                                                            <span className="font-medium text-stone-600">{i.title}</span>
-                                                            <span className="text-xs text-stone-400 bg-stone-100 px-1 rounded">{formatDateDisplay(i.date.toDate())}</span>
-                                                        </div>
-                                                        <span className="font-bold text-stone-700">{formatMoney(i.amount)}</span>
+                                    
+                                    <CustomSelect label="Fund Source" value={category} onChange={setCategory} options={fundSources.map(c=>({value:c,label:c}))} placeholder="Select Fund Source" />
+
+                                    {isBatch ? (
+                                        <div className="space-y-3">
+                                            <CustomSelect label="Block" value={block} onChange={(v)=>{setBlock(v); setSelectedLots([])}} options={Object.keys(SUBDIVISION_MAP).map(k=>({value:k, label:`Blk ${k}`}))} />
+                                            {block ? (
+                                                <div className="p-3 bg-stone-50 rounded-xl border border-stone-100">
+                                                    <div className="flex justify-between items-end mb-2"><span className="text-xs font-bold text-stone-400 uppercase">Select Lots</span><span className="text-xs font-bold text-teal-600">{selectedLots.length} Selected</span></div>
+                                                    <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto scroll-area">
+                                                        {Array.from({length: SUBDIVISION_MAP[block]}).map((_, i) => { 
+                                                            const n = i + 1; 
+                                                            const isSel = selectedLots.includes(n.toString());
+                                                            const isPaid = paidUnits.includes(`${block}-${n}`);
+                                                            return (
+                                                                <button 
+                                                                    key={n} 
+                                                                    onClick={()=>toggleBatchLot(n)} 
+                                                                    disabled={isPaid}
+                                                                    className={`h-8 w-full rounded text-xs font-bold transition flex items-center justify-center 
+                                                                        ${isPaid ? 'bg-stone-200 text-stone-400 cursor-not-allowed opacity-50' : 
+                                                                          isSel ? 'bg-teal-500 text-white shadow-md' : 'bg-white text-stone-400 border border-stone-100'}`}
+                                                                >
+                                                                    {n}
+                                                                </button>
+                                                            )
+                                                        })}
                                                     </div>
-                                                ))}
-                                            </div>
+                                                </div>
+                                            ) : <div className="p-4 text-center text-sm text-stone-400 bg-stone-50 rounded-xl border border-stone-100">Select a Block to view lots</div>}
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <CustomSelect label="Block" value={block} onChange={(v)=>{setBlock(v);setLot("")}} options={Object.keys(SUBDIVISION_MAP).map(k=>({value:k, label:`Blk ${k}`}))} />
+                                            <CustomSelect label="Lot" value={lot} onChange={setLot} disabled={!block} options={lotOptions} placeholder="-" />
                                         </div>
                                     )}
+                                </>
+                            ) : (
+                                <div className={isGlobalZero ? 'opacity-50 pointer-events-none' : ''}>
+                                    <div>
+                                        <label className="block text-xs font-bold text-stone-400 uppercase mb-1 ml-1">Description</label>
+                                        <input className="w-full h-12 bg-stone-100 rounded-xl px-4 font-semibold text-stone-700 outline-none focus:bg-white focus:border focus:border-orange-500 transition" placeholder="e.g. Guard Salary" value={expTitle} onChange={e=>setExpTitle(e.target.value)} />
+                                    </div>
+                                    <div className="mt-4">
+                                        <CustomSelect label="Fund Source" value={fundSource} onChange={setFundSource} options={expenseOptions} placeholder="Select Fund Source" />
+                                        {fundSource && (
+                                            <div className="text-right mt-1">
+                                                <span className="text-[10px] uppercase font-bold text-stone-400">Available: </span>
+                                                <span className={`text-xs font-bold ${fundBalance < 0 ? 'text-red-500' : 'text-teal-600'}`}>
+                                                    {fundBalance !== null ? formatMoney(fundBalance) : '...'}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className={`flex gap-3 ${(mode==='expense' && isGlobalZero) ? 'opacity-50 pointer-events-none' : ''}`}>
+                                {mode === 'expense' && (
+                                    <div className="w-1/3">
+                                        <label className="block text-xs font-bold text-stone-400 uppercase mb-1 ml-1">Qty</label>
+                                        <input type="number" className="w-full h-12 bg-stone-100 rounded-xl px-4 font-bold text-lg text-center outline-none focus:bg-white focus:border border border-transparent focus:border-orange-500 transition" placeholder="1" value={qty} onChange={e=>setQty(e.target.value)} />
+                                    </div>
+                                )}
+                                <div className="flex-1">
+                                    <label className="block text-xs font-bold text-stone-400 uppercase mb-1 ml-1">{mode==='income' && isBatch ? 'Amount Per Unit' : 'Unit Amount'}</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-3 text-stone-400 font-bold">₱</span>
+                                        <input type="number" className={`w-full h-12 bg-stone-100 rounded-xl pl-8 pr-4 font-bold text-lg outline-none focus:bg-white focus:border transition ${mode==='income'?'text-teal-600 focus:border-teal-500':'text-orange-500 focus:border-orange-500'}`} placeholder="0.00" value={amount} onChange={e=>setAmount(e.target.value)} />
+                                    </div>
                                 </div>
                             </div>
-                        ))
-                    }
-                </PageContainer>
+                            
+                            {mode === 'expense' && amount && (
+                                <div className="text-right text-xs font-bold text-stone-400">
+                                    Total: {formatMoney(currentTotal)}
+                                    {isOverBudget && <span className="text-red-500 ml-1">(Exceeds Funds)</span>}
+                                </div>
+                            )}
+
+                            <button onClick={handleSubmit} disabled={loading || (mode==='expense' && (isGlobalZero || isOverBudget))} className={`w-full h-14 rounded-xl font-bold text-white shadow-lg mt-2 transition active:scale-95 disabled:opacity-50 disabled:active:scale-100 ${mode==='income'?'bg-teal-600 shadow-teal-200':'bg-stone-800 shadow-stone-300'}`}>
+                                {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : (mode==='income' ? (isBatch ? `Batch Record (${selectedLots.length})` : 'Record Collection') : 'Record Expense')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             );
         };
 
-        // --- APP SHELL ---
+        const LedgerView = ({ showToast }) => {
+            const [txs, setTxs] = React.useState([]);
+
+            React.useEffect(() => {
+                const unsubPay = onSnapshot(query(collection(db,"payments"), orderBy("datePaid", "desc")), s => {
+                    const p = s.docs.map(d => ({id:d.id, type:'in', ...d.data(), date: d.data().datePaid}));
+                    setTxs(prev => { const exps = prev.filter(x => x.type === 'out'); return [...exps, ...p].sort((a,b) => b.date.seconds - a.date.seconds); });
+                });
+                const unsubExp = onSnapshot(query(collection(db,"expenses"), orderBy("date", "desc")), s => {
+                    const e = s.docs.map(d => ({id:d.id, type:'out', ...d.data()}));
+                    setTxs(prev => { const pays = prev.filter(x => x.type === 'in'); return [...pays, ...e].sort((a,b) => b.date.seconds - a.date.seconds); });
+                });
+                return () => { unsubPay(); unsubExp(); };
+            }, []);
+
+            return (
+                <div className="bg-white rounded-3xl shadow-soft border border-stone-100 overflow-hidden min-h-[50vh] relative">
+                    <div className="bg-stone-50 px-6 py-4 border-b border-stone-100 flex justify-between items-center sticky top-0 z-10">
+                        <div>
+                            <h3 className="font-bold text-stone-800">General Ledger</h3>
+                            <p className="text-xs text-stone-400">All recorded financial events</p>
+                        </div>
+                    </div>
+                    <div className="divide-y divide-stone-100 pb-20">
+                        {txs.map(tx => {
+                            const isVoid = tx.status === 'void';
+                            return (
+                                <div key={tx.id} className={`p-4 px-6 flex justify-between items-center transition-all ${isVoid ? 'void-row' : ''}`}>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm ${tx.type==='in' ? 'bg-teal-50 text-teal-600' : 'bg-orange-50 text-orange-500'} ${isVoid ? 'grayscale opacity-50' : ''}`}>
+                                            <i className={`fa-solid ${tx.type==='in' ? 'fa-arrow-down' : 'fa-arrow-up'}`}></i>
+                                        </div>
+                                        <div>
+                                            <div className={`font-bold text-stone-700 text-sm ${isVoid ? 'void-text' : ''}`}>
+                                                {isVoid && <span className="text-red-500 font-black mr-2 text-xs no-underline decoration-0 inline-block">VOIDED</span>}
+                                                {tx.type==='in' ? `Unit ${tx.block}-${tx.lot} (${tx.category})` : tx.title}
+                                                {tx.batchId && <span className="ml-2 text-[10px] bg-stone-100 px-1 rounded text-stone-400 font-normal no-underline">BATCH</span>}
+                                                {tx.fundSource === 'split' && <span className="ml-2 text-[10px] bg-orange-100 text-orange-600 px-1 rounded font-bold no-underline">DEFICIT</span>}
+                                            </div>
+                                            <div className="flex items-center gap-1 text-xs text-stone-400">
+                                                <span>{formatDate(tx.date.toDate())}</span>
+                                                {tx.type==='out' && tx.qty > 1 && <span className="font-bold text-stone-500 ml-1">x{tx.qty}</span>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className={`font-bold ${tx.type==='in' ? 'text-teal-600' : 'text-stone-800'} ${isVoid ? 'void-text' : ''}`}>
+                                            {tx.type==='out' && '- '}{formatMoney(tx.amount)}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {txs.length === 0 && <div className="p-10 text-center text-stone-400">No records found.</div>}
+                    </div>
+                </div>
+            );
+        };
+
+        const BudgetReport = ({ showToast, isAdmin }) => {
+            const [month, setMonth] = React.useState(new Date().toISOString().slice(0, 7));
+            const [report, setReport] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [isClosed, setIsClosed] = React.useState(false);
+            const [confirmCloseStage, setConfirmCloseStage] = React.useState(0); 
+
+            const fetchReport = React.useCallback(async () => {
+                setLoading(true);
+                const closeSnap = await getDoc(doc(db, "closed_months", month));
+                setIsClosed(closeSnap.exists());
+
+                const pSnap = await getDocs(query(collection(db, "payments"), where("status", "==", "verified")));
+                const eSnap = await getDocs(query(collection(db, "expenses"), where("status", "==", "verified")));
+                
+                const data = {};
+
+                pSnap.forEach(d => {
+                    const p = d.data();
+                    const cat = p.category || 'Uncategorized';
+                    if(!data[cat]) data[cat] = { collected: 0, spent: 0, balance: 0, sfUsed: 0, sfIn: 0 };
+                    
+                    const pMonth = p.datePaid.toDate().toISOString().slice(0, 7);
+                    if (pMonth === month) {
+                        data[cat].collected += (p.amountOps || 0);
+                        data[cat].sfIn += (p.amountRes || 0);
+                    }
+                    data[cat].balance += (p.amountOps || 0);
+                });
+
+                eSnap.forEach(d => {
+                    const e = d.data();
+                    const cat = e.category || 'Uncategorized';
+                    if(!data[cat]) data[cat] = { collected: 0, spent: 0, balance: 0, sfUsed: 0, sfIn: 0 };
+                    
+                    const eMonth = e.date.toDate().toISOString().slice(0, 7);
+                    if (eMonth === month) {
+                        data[cat].spent += (e.amount || 0); 
+                        data[cat].sfUsed += (e.amountFromRes || 0); 
+                    }
+                    data[cat].balance -= (e.amountFromOps || 0);
+                });
+
+                setReport(Object.entries(data).map(([k,v]) => ({category: k, ...v})));
+                setLoading(false);
+            }, [month]);
+
+            React.useEffect(() => { fetchReport(); }, [fetchReport]);
+
+            const executeClose = async () => {
+                try {
+                    await setDoc(doc(db, "closed_months", month), { closedAt: Timestamp.now(), closedBy: auth.currentUser.uid });
+                    setIsClosed(true);
+                    setConfirmCloseStage(0);
+                    showToast("Month Closed Successfully", "success");
+                } catch(e) { showToast("Error closing month", "error"); }
+            };
+
+            return (
+                <div className="space-y-4 animate-fade-in">
+                    {confirmCloseStage > 0 && (
+                        <Modal title="Confirm Closing" onClose={() => setConfirmCloseStage(0)}>
+                            <div className="p-6 text-center">
+                                {confirmCloseStage === 1 ? (
+                                    <>
+                                        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4"><i className="fa-solid fa-triangle-exclamation text-3xl text-orange-500"></i></div>
+                                        <h3 className="font-bold text-lg mb-2 text-stone-800">Close {month}?</h3>
+                                        <p className="text-stone-500 text-sm mb-6">This will lock all financial records for this period. No further edits or additions will be allowed.</p>
+                                        <button onClick={() => setConfirmCloseStage(2)} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold">Proceed</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><i className="fa-solid fa-lock text-3xl text-red-500"></i></div>
+                                        <h3 className="font-bold text-lg mb-2 text-stone-800">Final Warning</h3>
+                                        <p className="text-stone-500 text-sm mb-6">This action is <b>IRREVERSIBLE</b>. Are you absolutely sure you want to close this month?</p>
+                                        <button onClick={executeClose} className="w-full py-4 bg-red-500 text-white rounded-xl font-bold shadow-lg shadow-red-200">YES, CLOSE MONTH</button>
+                                    </>
+                                )}
+                            </div>
+                        </Modal>
+                    )}
+
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-stone-800">Budget Report</h3>
+                            {isClosed && <span className="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded"><i className="fa-solid fa-lock mr-1"></i>CLOSED</span>}
+                        </div>
+                        <input type="month" value={month} onChange={e=>setMonth(e.target.value)} className="bg-stone-100 rounded-lg px-2 py-1 text-xs font-bold text-stone-600 outline-none" />
+                    </div>
+                    
+                    <div className="space-y-3">
+                        {loading ? <div className="p-8 text-center text-stone-300"><i className="fa-solid fa-circle-notch fa-spin"></i></div> : report.length === 0 ? <div className="p-8 text-center text-sm text-stone-400">No data available</div> : 
+                            report.map((r,i) => (
+                                <div key={i} className="p-4 bg-white rounded-2xl shadow-soft border border-stone-50">
+                                    <div className="flex justify-between items-center mb-3 pb-2 border-b border-stone-50">
+                                        <span className="font-bold text-stone-700 text-sm">{r.category}</span>
+                                        <span className="text-[10px] font-bold bg-stone-100 text-stone-500 px-2 py-1 rounded">Bal: {formatMoney(r.balance)}</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3 text-xs">
+                                        <div className="bg-stone-50 p-2 rounded-lg">
+                                            <div className="font-bold text-stone-400 mb-1 uppercase text-[9px]">Operations</div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-teal-600 font-medium">+{r.collected > 0 ? formatMoney(r.collected) : '0'}</span>
+                                                <span className="text-orange-500 font-medium">-{r.spent > 0 ? formatMoney(r.spent) : '0'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-stone-50 p-2 rounded-lg">
+                                            <div className="font-bold text-stone-400 mb-1 uppercase text-[9px]">Sinking Fund</div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-blue-500 font-medium">+{r.sfIn > 0 ? formatMoney(r.sfIn) : '0'}</span>
+                                                <span className="text-orange-500 font-medium">-{r.sfUsed > 0 ? formatMoney(r.sfUsed) : '0'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        }
+                    </div>
+                    {isAdmin && !isClosed && (
+                        <button onClick={() => setConfirmCloseStage(1)} className="w-full py-3 rounded-xl border-2 border-stone-200 text-stone-400 font-bold text-xs hover:border-red-200 hover:text-red-500 transition">
+                            Close This Month
+                        </button>
+                    )}
+                </div>
+            );
+        };
 
         const App = () => {
             const [user, setUser] = React.useState(null);
-            const [accessGranted, setAccessGranted] = React.useState(false);
-            const [view, setView] = React.useState('home');
-            const [modal, setModal] = React.useState(false);
+            const [loading, setLoading] = React.useState(true);
+            const [verifying, setVerifying] = React.useState(false);
+            const [loggingIn, setLoggingIn] = React.useState(false); 
+            const [accessCode, setAccessCode] = React.useState("");
+            const [authorized, setAuthorized] = React.useState(false); 
+            const [subView, setSubView] = React.useState("dashboard"); 
             const [toast, setToast] = React.useState(null);
-            const [menuOpen, setMenuOpen] = React.useState(false);
+            const [showPass, setShowPass] = React.useState(false); 
+            const [showSettings, setShowSettings] = React.useState(false);
+            const [menuOpen, setMenuOpen] = React.useState(false); 
+            const [funds, setFunds] = React.useState({ ops: 0, res: 0 });
 
-            React.useEffect(() => {
-                const access = localStorage.getItem('blocksync_access_v1');
-                if (access === 'granted') setAccessGranted(true);
-                const unsubscribe = onAuthStateChanged(auth, setUser);
-                return () => unsubscribe();
+            React.useEffect(() => { 
+                const unsub = onAuthStateChanged(auth, (u) => { 
+                    setUser(u); 
+                    setLoading(false); 
+                    if(u) { setAuthorized(true); setView('admin'); }
+                    else { setLoggingIn(false); } 
+                }); 
+                return () => unsub(); 
             }, []);
 
-            const NavBtn = ({ id, icon, label, onClick }) => (
-                <button 
-                    onClick={onClick ? onClick : () => { setView(id); setMenuOpen(false); }} 
-                    className={`w-full flex items-center gap-4 px-6 py-4 text-left transition-colors ${view===id ? 'bg-teal-50 text-teal-700' : 'text-stone-500 hover:bg-stone-50'}`}
-                >
-                    <i className={`fa-solid ${icon} w-6 text-center text-lg`}></i>
-                    <span className="font-bold text-sm tracking-wide">{label}</span>
-                </button>
-            );
+            React.useEffect(() => {
+                if(!authorized) return;
+                const unsubP = onSnapshot(query(collection(db, "payments"), where("status", "==", "verified")), s => {
+                    let incomeOps = 0, incomeRes = 0;
+                    s.docs.forEach(d => { incomeOps += d.data().amountOps || 0; incomeRes += d.data().amountRes || 0; });
+                    onSnapshot(query(collection(db, "expenses"), where("status", "==", "verified")), expSnap => {
+                        let expOps = 0, expRes = 0;
+                        expSnap.docs.forEach(d => { expOps += d.data().amountFromOps || 0; expRes += d.data().amountFromRes || 0; });
+                        setFunds({ ops: incomeOps - expOps, res: incomeRes - expRes });
+                    });
+                });
+                return () => {}; 
+            }, [authorized]);
 
-            if (!accessGranted) {
-                return <AccessGate onGrant={() => setAccessGranted(true)} />;
+            const totalCash = funds.ops + funds.res;
+            const opsPct = totalCash > 0 ? (funds.ops / totalCash) * 100 : 90; 
+            const pieStyle = { background: `conic-gradient(#0d9488 ${opsPct}%, #f97316 0)` };
+
+            const verifyAccessCode = async () => {
+                if (!accessCode.trim()) return;
+                setVerifying(true);
+                try {
+                    const codeRef = doc(db, "community_codes", accessCode.trim());
+                    const snap = await getDoc(codeRef);
+                    if (snap.exists() && snap.data().active === true) { setAuthorized(true); setSubView("dashboard"); } 
+                    else { setToast({message: "Invalid Code", type: "error"}); }
+                } catch (err) { setToast({message: "Connection Error", type: "error"}); } 
+                finally { setVerifying(false); }
+            };
+
+            const handleAdminLogin = async (e) => {
+                e.preventDefault();
+                const rawInput = e.target.email.value.trim();
+                const password = e.target.pass.value;
+                setLoggingIn(true);
+                const email = rawInput.toLowerCase() === 'admin' ? 'admin@sonera.com' : rawInput;
+                try { await signInWithEmailAndPassword(auth, email, password); } catch(err) { setToast({message: "Login Failed", type: "error"}); setLoggingIn(false); }
+            };
+
+            const showToast = (m, t) => setToast({message: m, type: t});
+
+            if (loading) return null;
+
+            if (!authorized && !user) {
+                return (
+                    <div className="h-full flex flex-col items-center justify-center p-6 bg-stone-50">
+                        {toast && <Toast {...toast} onClose={()=>setToast(null)} />}
+                        <div className="w-full max-w-sm bg-white p-8 rounded-3xl shadow-xl border border-stone-100 animate-scale-in">
+                            <div className="text-center mb-8">
+                                <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                                     <img src="favicon.png" className="w-full h-full object-contain" alt="Logo" onError={(e)=>{e.target.style.display='none'; this.nextSibling.style.display='block'}} />
+                                     <i className="fa-solid fa-building-columns text-teal-600 text-6xl hidden"></i>
+                                </div>
+                                <h1 className="text-2xl font-extrabold text-stone-800">BlockSync</h1>
+                                <p className="text-stone-400 text-sm">Accounting & Transparency Portal</p>
+                            </div>
+                            <div className="space-y-6">
+                                <div><label className="text-xs font-bold text-stone-400 uppercase ml-1">Resident Access</label><form onSubmit={(e) => {e.preventDefault(); verifyAccessCode();}} className="flex gap-2"><input type="text" placeholder="ENTER ACCESS CODE" value={accessCode} onChange={e => setAccessCode(e.target.value.toUpperCase())} className="flex-1 h-12 bg-stone-100 rounded-xl px-4 font-bold text-center tracking-widest outline-none focus:ring-2 focus:ring-teal-500 transition placeholder:font-medium placeholder:tracking-normal placeholder:normal-case" disabled={verifying} /><button type="submit" disabled={verifying} className="w-12 h-12 bg-teal-600 text-white rounded-xl shadow-lg flex items-center justify-center active:scale-95 transition disabled:opacity-50">{verifying ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-arrow-right"></i>}</button></form></div>
+                                <div className="relative flex py-2 items-center"><div className="flex-grow border-t border-stone-100"></div><span className="flex-shrink mx-4 text-stone-300 text-xs font-bold uppercase">Or Admin</span><div className="flex-grow border-t border-stone-100"></div></div>
+                                <form onSubmit={handleAdminLogin} className="space-y-3"><input name="email" type="text" placeholder="Username" autoCapitalize="off" className="w-full h-12 bg-stone-50 border border-stone-100 rounded-xl px-4 text-sm font-medium outline-none focus:border-stone-400 transition" required /><div className="relative"><input name="pass" type={showPass ? "text" : "password"} placeholder="Password" className="w-full h-12 bg-stone-50 border border-stone-100 rounded-xl px-4 text-sm font-medium outline-none focus:border-stone-400 transition pr-10" required /><button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-3 text-stone-400 hover:text-stone-600"><i className={`fa-solid ${showPass ? 'fa-eye-slash' : 'fa-eye'}`}></i></button></div><button type="submit" disabled={loggingIn} className="w-full h-12 bg-stone-800 text-white rounded-xl font-bold shadow-lg hover:bg-stone-900 transition text-sm disabled:opacity-70">{loggingIn ? <i className="fa-solid fa-circle-notch fa-spin"></i> : 'Admin Dashboard'}</button></form>
+                            </div>
+                        </div>
+                        <p className="mt-8 text-xs text-stone-300 font-medium">Secured Ledger v2.0</p>
+                    </div>
+                );
             }
 
             return (
-                <div id="root">
-                    <header className="bg-white border-b border-stone-200 px-6 py-4 flex justify-between items-center z-20 shrink-0 h-[72px]">
-                        <div className="flex items-center gap-3">
-                            <img src="favicon.png" className="w-10 h-10 object-contain" />
-                            <div class="flex flex-col">
-                                <h1 class="font-extrabold text-xl leading-none text-stone-800">BlockSync</h1>
-                                <span class="text-[0.65rem] font-medium text-stone-400 tracking-wide">v1.1.4</span>
-                            </div>
+                <div className="h-full flex flex-col bg-stone-50">
+                    {toast && <Toast {...toast} onClose={()=>setToast(null)} />}
+                    {showSettings && <CategoryManager onClose={()=>setShowSettings(false)} showToast={showToast} />}
+                    
+                    <header className="bg-white px-6 py-4 flex justify-between items-center shadow-sm z-20 sticky top-0">
+                        <div className="flex flex-col"><h1 className="font-extrabold text-lg text-stone-800 tracking-tight leading-none"><i className="fa-solid fa-layer-group text-teal-600 mr-2"></i>{user ? 'Admin Console' : 'Resident View'}</h1><span className="text-[10px] text-stone-400 font-medium ml-7">Secured Ledger</span></div>
+                        <div className="relative">
+                            <button onClick={()=>setMenuOpen(!menuOpen)} className="w-10 h-10 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition"><i className="fa-solid fa-bars"></i></button>
+                            {menuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-30 bg-transparent" onClick={()=>setMenuOpen(false)}></div>
+                                    <div className="absolute top-12 right-0 w-48 bg-white rounded-2xl shadow-xl border border-stone-100 z-40 p-2 animate-scale-in">
+                                        <button onClick={()=>{setSubView('dashboard'); setMenuOpen(false);}} className="w-full text-left px-4 py-3 rounded-xl hover:bg-stone-50 text-sm font-medium text-stone-700 flex items-center gap-3"><i className="fa-solid fa-chart-pie w-4"></i> Dashboard</button>
+                                        <button onClick={()=>{setSubView('report'); setMenuOpen(false);}} className="w-full text-left px-4 py-3 rounded-xl hover:bg-stone-50 text-sm font-medium text-stone-700 flex items-center gap-3"><i className="fa-solid fa-file-invoice-dollar w-4"></i> Budget Report</button>
+                                        {user ? (
+                                            <>
+                                                <button onClick={()=>{setShowSettings(true); setMenuOpen(false);}} className="w-full text-left px-4 py-3 rounded-xl hover:bg-stone-50 text-sm font-medium text-stone-700 flex items-center gap-3"><i className="fa-solid fa-gear w-4"></i> Categories</button>
+                                                <div className="h-px bg-stone-100 my-1"></div>
+                                                <button onClick={()=>signOut(auth)} className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-sm font-bold text-red-500 flex items-center gap-3"><i className="fa-solid fa-power-off w-4"></i> Logout</button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="h-px bg-stone-100 my-1"></div>
+                                                <button onClick={()=>{setAuthorized(false); setUser(null); setMenuOpen(false);}} className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-sm font-bold text-red-500 flex items-center gap-3"><i className="fa-solid fa-right-from-bracket w-4"></i> Exit View</button>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
-                        <button onClick={() => setMenuOpen(!menuOpen)} className="w-10 h-10 bg-stone-100 rounded-full text-stone-500 hover:bg-stone-200 transition flex items-center justify-center">
-                            <i className={`fa-solid ${menuOpen ? 'fa-times' : 'fa-bars'} text-lg`}></i>
-                        </button>
                     </header>
 
-                    {menuOpen && (
-                        <div className="absolute top-[72px] left-0 w-full bg-white shadow-2xl border-b border-stone-200 z-40 animate-fade-in flex flex-col pb-4">
-                            <NavBtn id="home" icon="fa-database" label="Database" />
-                            <NavBtn id="summary" icon="fa-chart-pie" label="Financial Summary" />
-                            {user && (
-                                <>
-                                    <div className="h-px bg-stone-100 my-2 mx-6"></div>
-                                    <div className="px-6 py-2 text-xs font-bold text-stone-400 uppercase tracking-wider">Admin Tools</div>
-                                    <NavBtn id="tally" icon="fa-list-check" label="Tally Mode" />
-                                    <NavBtn id="active" icon="fa-map-location-dot" label="Active Units Map" />
-                                    <div className="h-px bg-stone-100 my-2 mx-6"></div>
-                                    <button onClick={() => { signOut(auth); setMenuOpen(false); }} className="w-full flex items-center gap-4 px-6 py-4 text-left text-red-500 hover:bg-red-50 transition-colors">
-                                        <i className="fa-solid fa-power-off w-6 text-center text-lg"></i>
-                                        <span className="font-bold text-sm tracking-wide">Logout</span>
-                                    </button>
-                                </>
-                            )}
-                            {!user && (
-                                <>
-                                    <div className="h-px bg-stone-100 my-2 mx-6"></div>
-                                    <button onClick={() => { setModal(true); setMenuOpen(false); }} className="w-full flex items-center gap-4 px-6 py-4 text-left text-stone-600 hover:bg-stone-50 transition-colors">
-                                        <i className="fa-solid fa-lock w-6 text-center text-lg"></i>
-                                        <span className="font-bold text-sm tracking-wide">Admin Login</span>
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    )}
+                    <main className="flex-1 overflow-y-auto scroll-area p-4 pb-24">
+                        {subView === 'report' && (
+                            <div>
+                                <button onClick={()=>setSubView('dashboard')} className="mb-4 text-sm font-bold text-stone-400 flex items-center gap-2"><i className="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+                                <BudgetReport showToast={showToast} isAdmin={!!user} />
+                            </div>
+                        )}
 
-                    <main className="flex-1 overflow-y-auto scroll-area p-4 pb-0 relative">
-                        <div className="pt-4">
-                            {view === 'home' && <ViewerMode />}
-                            {view === 'tally' && (user ? <TallyMode showToast={(m,t)=>setToast({m,t})} /> : <div className="text-center p-20 text-stone-400 font-bold">Admin Only</div>)}
-                            {view === 'active' && (user ? <ActiveUnitsMode /> : <div className="text-center p-20 text-stone-400 font-bold">Admin Only</div>)}
-                            {view === 'summary' && <SummaryMode user={user} showToast={(m,t)=>setToast({m,t})} scrollToTop={() => {}} />}
-                        </div>
+                        {subView === 'dashboard' && (
+                            <>
+                                {/* RESIDENT VIEW */}
+                                {!user && (
+                                    <div className="space-y-6 animate-fade-in">
+                                        <div className="bg-gradient-to-br from-stone-800 to-stone-900 rounded-3xl p-6 text-white shadow-xl">
+                                            <div className="flex items-center gap-2 mb-2 opacity-80"><i className="fa-solid fa-wallet text-sm"></i><span className="text-xs font-bold uppercase tracking-wider">Net Cash Position</span></div>
+                                            <div className="text-3xl font-bold mb-4">{formatMoney(funds.ops + funds.res)}</div>
+                                            <div className="flex gap-4">
+                                                <div className="flex-1 bg-white/10 rounded-xl p-3 backdrop-blur-sm"><div className="text-[10px] uppercase font-bold opacity-60">Operations</div><div className="font-semibold">{formatMoney(funds.ops)}</div></div>
+                                                <div className="flex-1 bg-orange-500/20 rounded-xl p-3 border border-orange-500/30 backdrop-blur-sm"><div className="text-[10px] uppercase font-bold text-orange-300">Sinking Fund</div><div className="font-semibold text-orange-200">{formatMoney(funds.res)}</div></div>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button onClick={()=>setSubView('checker')} className="bg-white p-6 rounded-3xl shadow-soft border border-stone-100 text-left hover:scale-[1.02] transition"><div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center text-teal-600 mb-3"><i className="fa-solid fa-house-chimney"></i></div><div className="font-bold text-stone-700">Check Unit</div><div className="text-xs text-stone-400">View Status</div></button>
+                                            <button onClick={()=>setSubView('report')} className="bg-white p-6 rounded-3xl shadow-soft border border-stone-100 text-left hover:scale-[1.02] transition"><div className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center text-stone-600 mb-3"><i className="fa-solid fa-file-invoice-dollar"></i></div><div className="font-bold text-stone-700">Budget Report</div><div className="text-xs text-stone-400">Transparency</div></button>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-3xl shadow-soft border border-stone-100">
+                                            <h3 className="font-bold text-stone-800 mb-4">Fund Allocation</h3>
+                                            <div className="flex items-center gap-6">
+                                                <div className="relative w-24 h-24 rounded-full border-4 border-stone-50 flex items-center justify-center shadow-inner" style={pieStyle}><div className="absolute w-16 h-16 bg-white rounded-full flex items-center justify-center"><span className="font-bold text-[10px] text-stone-400">LIVE</span></div></div>
+                                                <div className="space-y-2 text-sm"><div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-teal-500"></div><span className="text-stone-600">Operations ({Math.round(opsPct)}%)</span></div><div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-orange-500"></div><span className="text-stone-600">Sinking Fund ({100 - Math.round(opsPct)}%)</span></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ADMIN VIEW */}
+                                {user && (
+                                    <div className="space-y-6 animate-slide-up">
+                                        <TransactionRecorder showToast={showToast} setShowSettings={setShowSettings} totalFunds={funds.ops + funds.res} />
+                                        <div className="mt-8">
+                                            <LedgerView showToast={showToast} />
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {subView === 'checker' && (
+                            <div>
+                                <button onClick={()=>setSubView('dashboard')} className="mb-4 text-sm font-bold text-stone-400 flex items-center gap-2"><i className="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+                                <ResidentUnitChecker />
+                            </div>
+                        )}
                     </main>
-
-                    {modal && <LoginModal onClose={()=>setModal(false)} />}
-                    {toast && <Toast message={toast.m} type={toast.t} onClose={()=>setToast(null)} />}
                 </div>
             );
         };

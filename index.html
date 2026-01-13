@@ -1197,7 +1197,13 @@
                     {showSettings && <CategoryManager onClose={()=>setShowSettings(false)} showToast={showToast} />}
                     
                     <header className="bg-white px-6 py-4 flex justify-between items-center shadow-sm z-20 sticky top-0">
-                        <div className="flex flex-col"><h1 className="font-extrabold text-lg text-stone-800 tracking-tight leading-none"><i className="fa-solid fa-layer-group text-teal-600 mr-2"></i>{user ? 'Admin Console' : 'Resident View'}</h1><span className="text-[10px] text-stone-400 font-medium ml-7">Secured Ledger</span></div>
+                        <div className="flex flex-col"><h1 className="font-extrabold text-lg text-stone-800 tracking-tight leading-none flex items-center">
+        <img src="logo.png" className="w-6 h-6 object-contain mr-2" alt="Logo" />
+        {user ? 'Admin Console' : 'Resident View'}
+    </h1>
+    {/* Adjusted margin-left (ml-8) slightly to align with text start */}
+    <span className="text-[10px] text-stone-400 font-medium ml-8">Secured Ledger</span>
+</div>
                         <div className="relative">
                             <button onClick={()=>setMenuOpen(!menuOpen)} className="w-10 h-10 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition"><i className="fa-solid fa-bars"></i></button>
                             {menuOpen && (
